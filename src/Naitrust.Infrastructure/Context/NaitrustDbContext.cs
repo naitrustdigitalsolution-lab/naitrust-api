@@ -18,53 +18,53 @@ public class NaitrustDbContext : DbContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    // Core
-    public DbSet<User> Users => Set<User>();
-    public DbSet<Business> Businesses => Set<Business>();
-    public DbSet<BusinessMember> BusinessMembers => Set<BusinessMember>();
-    public DbSet<Party> Parties => Set<Party>();
+    // // Core
+    // public DbSet<User> Users => Set<User>();
+    // public DbSet<Business> Businesses => Set<Business>();
+    // public DbSet<BusinessMember> BusinessMembers => Set<BusinessMember>();
+    // public DbSet<Party> Parties => Set<Party>();
 
-    // Verification
-    public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
-    public DbSet<VerificationStep> VerificationSteps => Set<VerificationStep>();
-    public DbSet<VerificationDocument> VerificationDocuments => Set<VerificationDocument>();
-    public DbSet<FaceMatchResult> FaceMatchResults => Set<FaceMatchResult>();
-    public DbSet<OwnershipCheck> OwnershipChecks => Set<OwnershipCheck>();
-    public DbSet<VerificationProviderEvent> VerificationProviderEvents => Set<VerificationProviderEvent>();
+    // // Verification
+    // public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    // public DbSet<VerificationStep> VerificationSteps => Set<VerificationStep>();
+    // public DbSet<VerificationDocument> VerificationDocuments => Set<VerificationDocument>();
+    // public DbSet<FaceMatchResult> FaceMatchResults => Set<FaceMatchResult>();
+    // public DbSet<OwnershipCheck> OwnershipChecks => Set<OwnershipCheck>();
+    // public DbSet<VerificationProviderEvent> VerificationProviderEvents => Set<VerificationProviderEvent>();
 
-    // Transactions
-    public DbSet<Transaction> Transactions => Set<Transaction>();
-    public DbSet<TransactionType> TransactionTypes => Set<TransactionType>();
-    public DbSet<TransactionParty> TransactionParties => Set<TransactionParty>();
-    public DbSet<Agreement> Agreements => Set<Agreement>();
-    public DbSet<Milestone> Milestones => Set<Milestone>();
-    public DbSet<EvidenceFile> EvidenceFiles => Set<EvidenceFile>();
+    // // Transactions
+    // public DbSet<Transaction> Transactions => Set<Transaction>();
+    // public DbSet<TransactionType> TransactionTypes => Set<TransactionType>();
+    // public DbSet<TransactionParty> TransactionParties => Set<TransactionParty>();
+    // public DbSet<Agreement> Agreements => Set<Agreement>();
+    // public DbSet<Milestone> Milestones => Set<Milestone>();
+    // public DbSet<EvidenceFile> EvidenceFiles => Set<EvidenceFile>();
 
-    // Payments
-    public DbSet<VirtualAccount> VirtualAccounts => Set<VirtualAccount>();
-    public DbSet<PaymentPartnerEvent> PaymentPartnerEvents => Set<PaymentPartnerEvent>();
-    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
-    public DbSet<PaymentInstruction> PaymentInstructions => Set<PaymentInstruction>();
-    public DbSet<ReleaseRequest> ReleaseRequests => Set<ReleaseRequest>();
-    public DbSet<PayoutAccount> PayoutAccounts => Set<PayoutAccount>();
+    // // Payments
+    // public DbSet<VirtualAccount> VirtualAccounts => Set<VirtualAccount>();
+    // public DbSet<PaymentPartnerEvent> PaymentPartnerEvents => Set<PaymentPartnerEvent>();
+    // public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+    // public DbSet<PaymentInstruction> PaymentInstructions => Set<PaymentInstruction>();
+    // public DbSet<ReleaseRequest> ReleaseRequests => Set<ReleaseRequest>();
+    // public DbSet<PayoutAccount> PayoutAccounts => Set<PayoutAccount>();
 
-    // Disputes
-    public DbSet<Dispute> Disputes => Set<Dispute>();
-    public DbSet<DisputeMessage> DisputeMessages => Set<DisputeMessage>();
-    public DbSet<DisputeEvidence> DisputeEvidence => Set<DisputeEvidence>();
+    // // Disputes
+    // public DbSet<Dispute> Disputes => Set<Dispute>();
+    // public DbSet<DisputeMessage> DisputeMessages => Set<DisputeMessage>();
+    // public DbSet<DisputeEvidence> DisputeEvidence => Set<DisputeEvidence>();
 
-    // Reputation
-    public DbSet<ReputationProfile> ReputationProfiles => Set<ReputationProfile>();
-    public DbSet<Review> Reviews => Set<Review>();
+    // // Reputation
+    // public DbSet<ReputationProfile> ReputationProfiles => Set<ReputationProfile>();
+    // public DbSet<Review> Reviews => Set<Review>();
 
-    // Notifications
-    public DbSet<Notification> Notifications => Set<Notification>();
+    // // Notifications
+    // public DbSet<Notification> Notifications => Set<Notification>();
 
-    // AI
-    public DbSet<AiAssessment> AiAssessments => Set<AiAssessment>();
-    public DbSet<AiFeedback> AiFeedbacks => Set<AiFeedback>();
-    public DbSet<AiPromptVersion> AiPromptVersions => Set<AiPromptVersion>();
-    public DbSet<VectorDocument> VectorDocuments => Set<VectorDocument>();
+    // // AI
+    // public DbSet<AiAssessment> AiAssessments => Set<AiAssessment>();
+    // public DbSet<AiFeedback> AiFeedbacks => Set<AiFeedback>();
+    // public DbSet<AiPromptVersion> AiPromptVersions => Set<AiPromptVersion>();
+    // public DbSet<VectorDocument> VectorDocuments => Set<VectorDocument>();
 
     // Public
     public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
@@ -84,18 +84,18 @@ public class NaitrustDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BaseEntity).Assembly);
 
-        // Soft-delete query filters
-        modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
-        modelBuilder.Entity<Business>().HasQueryFilter(e => !e.IsDeleted);
-        modelBuilder.Entity<Transaction>().HasQueryFilter(e => !e.IsDeleted);
-        modelBuilder.Entity<VirtualAccount>().HasQueryFilter(e => !e.IsDeleted);
-        modelBuilder.Entity<Dispute>().HasQueryFilter(e => !e.IsDeleted);
+        // // Soft-delete query filters
+        // modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
+        // modelBuilder.Entity<Business>().HasQueryFilter(e => !e.IsDeleted);
+        // modelBuilder.Entity<Transaction>().HasQueryFilter(e => !e.IsDeleted);
+        // modelBuilder.Entity<VirtualAccount>().HasQueryFilter(e => !e.IsDeleted);
+        // modelBuilder.Entity<Dispute>().HasQueryFilter(e => !e.IsDeleted);
 
-        // Concurrency tokens on financial/critical entities
-        modelBuilder.Entity<Transaction>().Property<uint>("xmin").IsRowVersion();
-        modelBuilder.Entity<LedgerEntry>().Property<uint>("xmin").IsRowVersion();
-        modelBuilder.Entity<VirtualAccount>().Property<uint>("xmin").IsRowVersion();
-        modelBuilder.Entity<ReleaseRequest>().Property<uint>("xmin").IsRowVersion();
+        // // Concurrency tokens on financial/critical entities
+        // modelBuilder.Entity<Transaction>().Property<uint>("xmin").IsRowVersion();
+        // modelBuilder.Entity<LedgerEntry>().Property<uint>("xmin").IsRowVersion();
+        // modelBuilder.Entity<VirtualAccount>().Property<uint>("xmin").IsRowVersion();
+        // modelBuilder.Entity<ReleaseRequest>().Property<uint>("xmin").IsRowVersion();
 
         // AuditLog column constraints
         modelBuilder.Entity<AuditLog>(b =>

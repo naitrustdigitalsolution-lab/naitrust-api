@@ -8,11 +8,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Naitrust.Infrastructure.Migrations
+namespace Naitrust.Infrastructure.Migrations;
+
+[DbContext(typeof(NaitrustDbContext))]
+partial class NaitrustDbContextModelSnapshot : ModelSnapshot
 {
-    [DbContext(typeof(NaitrustDbContext))]
-    partial class NaitrustDbContextModelSnapshot : ModelSnapshot
-    {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
@@ -84,7 +84,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agreements");
+                    b.ToTable("Agreement");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AiAssessment", b =>
@@ -132,7 +132,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AiAssessments");
+                    b.ToTable("AiAssessment");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AiFeedback", b =>
@@ -158,7 +158,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AiFeedbacks");
+                    b.ToTable("AiFeedback");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AiPromptVersion", b =>
@@ -197,7 +197,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AiPromptVersions");
+                    b.ToTable("AiPromptVersion");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AuditLog", b =>
@@ -305,7 +305,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Businesses");
+                    b.ToTable("Business");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.BusinessMember", b =>
@@ -340,7 +340,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BusinessMembers");
+                    b.ToTable("BusinessMember");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.ContactMessage", b =>
@@ -431,7 +431,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Disputes");
+                    b.ToTable("Dispute");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.DisputeEvidence", b =>
@@ -478,7 +478,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DisputeMessages");
+                    b.ToTable("DisputeMessage");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.EvidenceFile", b =>
@@ -522,7 +522,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EvidenceFiles");
+                    b.ToTable("EvidenceFile");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.FaceMatchResult", b =>
@@ -565,7 +565,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FaceMatchResults");
+                    b.ToTable("FaceMatchResult");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Feedback", b =>
@@ -675,15 +675,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
 
-                    b.ToTable("LedgerEntries");
+                    b.ToTable("LedgerEntry");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Milestone", b =>
@@ -731,7 +725,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Milestones");
+                    b.ToTable("Milestone");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.NewsletterSubscriber", b =>
@@ -805,7 +799,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notification");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.OutboxMessage", b =>
@@ -880,7 +874,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OwnershipChecks");
+                    b.ToTable("OwnershipCheck");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Party", b =>
@@ -929,7 +923,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Parties");
+                    b.ToTable("Party");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.PaymentInstruction", b =>
@@ -980,7 +974,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PaymentInstructions");
+                    b.ToTable("PaymentInstruction");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.PaymentPartnerEvent", b =>
@@ -1015,7 +1009,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PaymentPartnerEvents");
+                    b.ToTable("PaymentPartnerEvent");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.PayoutAccount", b =>
@@ -1064,7 +1058,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PayoutAccounts");
+                    b.ToTable("PayoutAccount");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.RefreshToken", b =>
@@ -1136,15 +1130,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
 
-                    b.ToTable("ReleaseRequests");
+                    b.ToTable("ReleaseRequest");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.ReportedConcern", b =>
@@ -1234,7 +1222,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReputationProfiles");
+                    b.ToTable("ReputationProfile");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Review", b =>
@@ -1266,7 +1254,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Review");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Transaction", b =>
@@ -1350,15 +1338,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<int?>("VerificationLevelRequired")
                         .HasColumnType("integer");
 
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transaction");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.TransactionParty", b =>
@@ -1412,7 +1394,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TransactionParties");
+                    b.ToTable("TransactionParty");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.TransactionType", b =>
@@ -1461,7 +1443,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TransactionTypes");
+                    b.ToTable("TransactionType");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.User", b =>
@@ -1524,7 +1506,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VectorDocument", b =>
@@ -1555,7 +1537,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VectorDocuments");
+                    b.ToTable("VectorDocument");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationDocument", b =>
@@ -1608,7 +1590,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationDocuments");
+                    b.ToTable("VerificationDocument");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationProviderEvent", b =>
@@ -1641,7 +1623,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationProviderEvents");
+                    b.ToTable("VerificationProviderEvent");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationRequest", b =>
@@ -1712,7 +1694,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationRequests");
+                    b.ToTable("VerificationRequest");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationStep", b =>
@@ -1756,7 +1738,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationSteps");
+                    b.ToTable("VerificationStep");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VirtualAccount", b =>
@@ -1814,15 +1796,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
 
-                    b.ToTable("VirtualAccounts");
+                    b.ToTable("VirtualAccount");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.WaitlistEntry", b =>
@@ -1870,5 +1846,4 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 #pragma warning restore 612, 618
         }
-    }
 }

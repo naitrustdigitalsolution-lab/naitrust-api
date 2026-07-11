@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>Naitrust.Api</RootNamespace>
+    <UserSecretsId>69efdf19-2299-414f-8ebb-abdf1df7c850</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
