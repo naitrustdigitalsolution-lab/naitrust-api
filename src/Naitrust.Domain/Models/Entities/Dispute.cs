@@ -1,0 +1,16 @@
+using Naitrust.Domain.Models.Enums;
+using Naitrust.Domain.Models.Enums.Disputes;
+
+namespace Naitrust.Domain.Models.Entities;
+
+public class Dispute : BaseEntity
+{
+    public Guid TransactionId { get; set; }
+    public Guid OpenedByUserId { get; set; }
+    public DisputeStatus Status { get; set; }
+    public string Reason { get; set; } = default!;
+    public string? Description { get; set; }
+    public Guid? AdminOwnerId { get; set; }
+    public DisputeResolution? Resolution { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+}

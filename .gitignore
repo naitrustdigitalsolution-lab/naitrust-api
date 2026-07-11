@@ -1,0 +1,49 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstats
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+## Secrets & Environment
+appsettings.*.json
+!appsettings.json
+.env
+.env.*
+secrets.json
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Build & Publish
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+publish/
+out/
+
+## NuGet
+*.nupkg
+**/packages/*
+
+## Test results
+TestResults/
+coverage/
+
+## Claude
+.claude/
+
+## Misc
+*.log

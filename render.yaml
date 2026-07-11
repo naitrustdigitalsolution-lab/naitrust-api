@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: naitrust-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__Default
+        fromDatabase:
+          name: naitrust-db
+          property: connectionString
+      - key: Redis__ConnectionString
+        fromService:
+          type: redis
+          name: naitrust-redis
+          property: connectionString
+
+databases:
+  - name: naitrust-db
+    plan: starter
+    postgresMajorVersion: "16"

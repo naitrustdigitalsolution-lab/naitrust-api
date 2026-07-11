@@ -1,0 +1,9 @@
+namespace Naitrust.Application.ExternalServices.Providus;
+
+internal record ProvidusCreateAccountRequest;
+internal record ProvidusCreateAccountResponse;
+internal record ProvidusWebhookPayload;
+internal record ProvidusTransferRequest;
+internal record ProvidusTransferResponse;
+internal record ProvidusNameEnquiryRequest;
+internal record ProvidusNameEnquiryResponse;
