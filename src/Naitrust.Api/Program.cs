@@ -5,6 +5,10 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway sets PORT env var
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // Serilog
 builder.AddSerilogLogging();
 
@@ -20,13 +24,13 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 
+app.UseSwagger();
+app.UseSwaggerUI();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseHttpsRedirection();
 }
-
-app.UseHttpsRedirection();
 app.UseCors("NaitrustCorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
