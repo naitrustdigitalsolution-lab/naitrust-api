@@ -9,6 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
+// Railway provides DATABASE_URL; map it to config
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    builder.Configuration["ConnectionStrings:NaitrustDbConnection"] = databaseUrl;
+    builder.Configuration["Hangfire:ConnectionString"] = databaseUrl;
+}
+
 // Serilog
 builder.AddSerilogLogging();
 

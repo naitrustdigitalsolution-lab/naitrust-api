@@ -15,7 +15,7 @@ public static class InfrastructureRegistration
         // DbContext
         services.AddDbContext<NaitrustDbContext>(options =>
             options.UseNpgsql(
-                configuration.GetConnectionString("Default"),
+                configuration.GetConnectionString("NaitrustDbConnection"),
                 b => b.MigrationsAssembly(typeof(NaitrustDbContext).Assembly.FullName)));
 
         // Repository & Unit of Work
