@@ -39,8 +39,11 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (!app.Environment.IsProduction())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 if (app.Environment.IsDevelopment())
 {
