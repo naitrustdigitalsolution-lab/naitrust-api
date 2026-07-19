@@ -9,13 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
-// Railway provides DATABASE_URL; map it to config
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrEmpty(databaseUrl))
-{
-    builder.Configuration["ConnectionStrings:NaitrustDbConnection"] = databaseUrl;
-    builder.Configuration["Hangfire:ConnectionString"] = databaseUrl;
-}
 
 // Serilog
 builder.AddSerilogLogging();
@@ -53,8 +46,15 @@ if (hangfireSettings.GetValue<bool>("DashboardEnabled"))
     app.UseHangfireDashboard(hangfireSettings.GetValue<string>("DashboardPath") ?? "/hangfire");
 }
 
-// Register recurring background jobs
-HangfireJobRegistration.RegisterAll(app.Services);
+// Register recurring background jobs (non-fatal if DB not ready)
+try
+{
+    HangfireJobRegistration.RegisterAll(app.Services);
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "Failed to register Hangfire jobs. Ensure DATABASE_URL is configured.");
+}
 
 app.Run();
 
