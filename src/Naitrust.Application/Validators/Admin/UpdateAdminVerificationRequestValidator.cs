@@ -7,6 +7,7 @@ public class UpdateAdminVerificationRequestValidator : AbstractValidator<UpdateA
 {
     public UpdateAdminVerificationRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Status).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.ReviewNotes).MaximumLength(2000);
     }
 }

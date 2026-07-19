@@ -8,6 +8,12 @@ public class ReputationProfileConfiguration : IEntityTypeConfiguration<Reputatio
 {
     public void Configure(EntityTypeBuilder<ReputationProfile> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("ReputationProfiles");
+
+        builder.Property(x => x.RatingAverage).HasPrecision(5, 2);
+
+        builder.Property(x => x.SubjectType).HasConversion<string>();
+
+        builder.HasIndex(x => new { x.SubjectType, x.SubjectId }).IsUnique();
     }
 }

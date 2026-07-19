@@ -15,7 +15,7 @@ public static class InfrastructureRegistration
         // DbContext
         services.AddDbContext<NaitrustDbContext>(options =>
             options.UseNpgsql(
-                configuration.GetConnectionString("Default"),
+                configuration.GetConnectionString("NaitrustDbConnection"),
                 b => b.MigrationsAssembly(typeof(NaitrustDbContext).Assembly.FullName)));
 
         // Repository & Unit of Work
@@ -23,7 +23,6 @@ public static class InfrastructureRegistration
         services.AddScoped<IUnitOfWork, UnitOfWork<NaitrustDbContext>>();
 
         // Security
-        services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IEncryptionHelper, EncryptionHelper>();
         services.AddSingleton<IWebhookSignatureValidator, WebhookSignatureValidator>();
 

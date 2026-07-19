@@ -8,6 +8,16 @@ public class ReleaseRequestConfiguration : IEntityTypeConfiguration<ReleaseReque
 {
     public void Configure(EntityTypeBuilder<ReleaseRequest> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("ReleaseRequests");
+
+        builder.Property(x => x.Provider).HasMaxLength(100);
+        builder.Property(x => x.ProviderReference).HasMaxLength(200);
+
+        builder.Property(x => x.Status).HasConversion<string>();
+
+        builder.HasIndex(x => x.TransactionId);
+
+        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

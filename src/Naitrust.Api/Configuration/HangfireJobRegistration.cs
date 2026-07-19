@@ -7,37 +7,39 @@ public static class HangfireJobRegistration
 {
     public static void RegisterAll(IServiceProvider services)
     {
-        RecurringJob.AddOrUpdate<ReconciliationJob>(
+        var jobManager = services.GetRequiredService<IRecurringJobManager>();
+
+        jobManager.AddOrUpdate<ReconciliationJob>(
             "reconciliation",
             job => job.ExecuteAsync(CancellationToken.None),
             Cron.Hourly);
 
-        RecurringJob.AddOrUpdate<AutoConfirmJob>(
+        jobManager.AddOrUpdate<AutoConfirmJob>(
             "auto-confirm",
             job => job.ExecuteAsync(CancellationToken.None),
             "*/15 * * * *");
 
-        RecurringJob.AddOrUpdate<NotificationDispatchJob>(
+        jobManager.AddOrUpdate<NotificationDispatchJob>(
             "notification-dispatch",
             job => job.ExecuteAsync(CancellationToken.None),
             Cron.Minutely);
 
-        RecurringJob.AddOrUpdate<OutboxProcessorJob>(
+        jobManager.AddOrUpdate<OutboxProcessorJob>(
             "outbox-processor",
             job => job.ExecuteAsync(CancellationToken.None),
             Cron.Minutely);
 
-        RecurringJob.AddOrUpdate<WebhookRetryJob>(
+        jobManager.AddOrUpdate<WebhookRetryJob>(
             "webhook-retry",
             job => job.ExecuteAsync(CancellationToken.None),
             "*/5 * * * *");
 
-        RecurringJob.AddOrUpdate<VirtualAccountExpiryJob>(
+        jobManager.AddOrUpdate<VirtualAccountExpiryJob>(
             "virtual-account-expiry",
             job => job.ExecuteAsync(CancellationToken.None),
             Cron.Hourly);
 
-        RecurringJob.AddOrUpdate<VerificationExpiryJob>(
+        jobManager.AddOrUpdate<VerificationExpiryJob>(
             "verification-expiry",
             job => job.ExecuteAsync(CancellationToken.None),
             Cron.Hourly);

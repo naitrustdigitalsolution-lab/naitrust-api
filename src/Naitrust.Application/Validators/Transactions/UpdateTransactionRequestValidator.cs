@@ -7,6 +7,8 @@ public class UpdateTransactionRequestValidator : AbstractValidator<UpdateTransac
 {
     public UpdateTransactionRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Title).MaximumLength(200).When(x => x.Title is not null);
+        RuleFor(x => x.Description).MaximumLength(2000).When(x => x.Description is not null);
+        RuleFor(x => x.AmountMinor).GreaterThan(0).When(x => x.AmountMinor.HasValue);
     }
 }

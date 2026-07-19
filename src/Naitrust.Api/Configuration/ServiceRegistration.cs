@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Naitrust.Application.Configurations;
 using Naitrust.Domain.Configurations.ConfigModels;
+using Naitrust.Domain.Models.Entities;
 using Naitrust.Infrastructure;
+using Naitrust.Infrastructure.Context;
 
 namespace Naitrust.Api.Configuration;
 
@@ -16,6 +19,23 @@ public static class ServiceRegistration
 
         // Infrastructure: DbContext, Repository, UoW, Security
         services.AddInfrastructure(configuration);
+
+        // ASP.NET Identity
+        services.AddIdentity<NaitrustUser, NaitrustRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 8;
+
+                options.User.RequireUniqueEmail = true;
+
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+            })
+            .AddEntityFrameworkStores<NaitrustDbContext>()
+            .AddDefaultTokenProviders();
 
         // Application: all business services
         services.AddApplicationLayer();

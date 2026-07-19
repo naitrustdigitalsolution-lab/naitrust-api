@@ -7,6 +7,6 @@ public class RefreshTokenRequestValidator : AbstractValidator<RefreshTokenReques
 {
     public RefreshTokenRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.RefreshToken).NotEmpty();
     }
 }

@@ -8,6 +8,8 @@ public class NewsletterSubscriberConfiguration : IEntityTypeConfiguration<Newsle
 {
     public void Configure(EntityTypeBuilder<NewsletterSubscriber> builder)
     {
+        builder.ToTable("NewsletterSubscribers");
+
         builder.Property(x => x.Email).HasMaxLength(320).IsRequired();
 
         builder.HasIndex(x => x.Email).IsUnique();

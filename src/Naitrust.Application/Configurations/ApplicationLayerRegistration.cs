@@ -10,6 +10,7 @@ using Naitrust.Application.Services.Implementations.Parties;
 using Naitrust.Application.Services.Implementations.Payments;
 using Naitrust.Application.Services.Implementations.Public;
 using Naitrust.Application.Services.Implementations.Reputation;
+using Naitrust.Application.Services.Implementations.Roles;
 using Naitrust.Application.Services.Implementations.Transactions;
 using Naitrust.Application.Services.Implementations.Users;
 using Naitrust.Application.Services.Implementations.Verification;
@@ -39,6 +40,10 @@ public static class ApplicationLayerRegistration
         // Payments
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<ILedgerService, LedgerService>();
+
+        // Roles
+        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IRoleClaimService, RoleClaimService>();
 
         // Verification
         services.AddScoped<IVerificationService, VerificationService>();

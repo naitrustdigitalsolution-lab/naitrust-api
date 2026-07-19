@@ -8,6 +8,13 @@ public class AiFeedbackConfiguration : IEntityTypeConfiguration<AiFeedback>
 {
     public void Configure(EntityTypeBuilder<AiFeedback> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("AiFeedbacks");
+
+        builder.Property(x => x.FeedbackType).HasConversion<string>();
+
+        builder.HasIndex(x => x.AssessmentId);
+
+        builder.HasOne<AiAssessment>().WithMany().HasForeignKey(x => x.AssessmentId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

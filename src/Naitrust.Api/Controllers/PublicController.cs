@@ -31,6 +31,7 @@ public class PublicController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
+
     /// <summary>
     /// Submit a contact us message
     /// </summary>

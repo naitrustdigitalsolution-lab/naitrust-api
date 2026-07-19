@@ -7,6 +7,7 @@ public class UpdateBusinessMemberRequestValidator : AbstractValidator<UpdateBusi
 {
     public UpdateBusinessMemberRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Role).MaximumLength(50);
+        RuleFor(x => x.Status).MaximumLength(50);
     }
 }

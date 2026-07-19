@@ -8,6 +8,11 @@ public class VectorDocumentConfiguration : IEntityTypeConfiguration<VectorDocume
 {
     public void Configure(EntityTypeBuilder<VectorDocument> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("VectorDocuments");
+
+        builder.Property(x => x.SourceType).HasMaxLength(100).IsRequired();
+        builder.Property(x => x.EmbeddingModel).HasMaxLength(100).IsRequired();
+
+        builder.HasIndex(x => new { x.SourceType, x.SourceId });
     }
 }

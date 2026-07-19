@@ -3,10 +3,12 @@ using Naitrust.Domain.Models.Dtos.Requests.Payments;
 
 namespace Naitrust.Application.Validators.Payments;
 
-public class CreateVirtualAccountRequestValidator : AbstractValidator<CreateVirtualAccountRequest>
+public class CreateSettlementAccountRequestValidator : AbstractValidator<CreateSettlementAccountRequest>
 {
-    public CreateVirtualAccountRequestValidator()
+    public CreateSettlementAccountRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.PartnerId).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.BusinessId).Must(id => id != Guid.Empty).When(x => x.BusinessId.HasValue)
+            .WithMessage("BusinessId must not be empty when provided.");
     }
 }

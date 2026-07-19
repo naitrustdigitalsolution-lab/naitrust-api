@@ -7,6 +7,12 @@ public class ProposeTermsRequestValidator : AbstractValidator<ProposeTermsReques
 {
     public ProposeTermsRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Summary).MaximumLength(500);
+        RuleFor(x => x.Description).MaximumLength(5000);
+        RuleFor(x => x.DeliveryConditions).MaximumLength(2000);
+        RuleFor(x => x.ReleaseConditions).MaximumLength(2000);
+        RuleFor(x => x.ProofRequirements).MaximumLength(2000);
+        RuleFor(x => x.DisputeRules).MaximumLength(2000);
+        RuleFor(x => x.AutoConfirmWindowHours).GreaterThan(0).LessThanOrEqualTo(720).When(x => x.AutoConfirmWindowHours.HasValue);
     }
 }

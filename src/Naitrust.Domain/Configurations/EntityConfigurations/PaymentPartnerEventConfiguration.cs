@@ -8,6 +8,16 @@ public class PaymentPartnerEventConfiguration : IEntityTypeConfiguration<Payment
 {
     public void Configure(EntityTypeBuilder<PaymentPartnerEvent> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("PaymentPartnerEvents");
+
+        builder.Property(x => x.ProviderEventId).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.EventType).HasMaxLength(100).IsRequired();
+
+        builder.Property(x => x.Partner).HasConversion<string>();
+
+        builder.HasIndex(x => x.ProviderEventId).IsUnique();
+        builder.HasIndex(x => x.VirtualAccountId);
+
+        builder.HasOne<VirtualAccount>().WithMany().HasForeignKey(x => x.VirtualAccountId).OnDelete(DeleteBehavior.Cascade);
     }
 }

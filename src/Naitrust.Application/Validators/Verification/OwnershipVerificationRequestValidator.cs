@@ -7,6 +7,7 @@ public class OwnershipVerificationRequestValidator : AbstractValidator<Ownership
 {
     public OwnershipVerificationRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.BusinessId).NotEmpty();
+        RuleFor(x => x.Method).NotEmpty().MaximumLength(50);
     }
 }

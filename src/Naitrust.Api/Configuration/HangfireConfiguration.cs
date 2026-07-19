@@ -9,7 +9,9 @@ public static class HangfireConfiguration
     public static IServiceCollection AddHangfireServices(this IServiceCollection services, IConfiguration configuration)
     {
         var hangfireSettings = configuration.GetSection("Hangfire").Get<HangfireSettings>();
-        var connectionString = hangfireSettings?.ConnectionString ?? configuration.GetConnectionString("Default");
+        var connectionString = string.IsNullOrEmpty(hangfireSettings?.ConnectionString)
+            ? configuration.GetConnectionString("NaitrustDbConnection")
+            : hangfireSettings.ConnectionString;
 
         services.AddHangfire(config => config
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)

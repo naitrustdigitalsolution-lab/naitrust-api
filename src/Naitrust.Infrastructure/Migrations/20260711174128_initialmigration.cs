@@ -3,16 +3,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Naitrust.Infrastructure.Migrations
+namespace Naitrust.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class InitialMigration : Migration
 {
-    /// <inheritdoc />
-    public partial class AddPublicFormTables : Migration
-    {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Agreements",
+                name: "Agreement",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -37,11 +37,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Agreements", x => x.Id);
+                    table.PrimaryKey("PK_Agreement", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AiAssessments",
+                name: "AiAssessment",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -59,11 +59,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AiAssessments", x => x.Id);
+                    table.PrimaryKey("PK_AiAssessment", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AiFeedbacks",
+                name: "AiFeedback",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -75,11 +75,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AiFeedbacks", x => x.Id);
+                    table.PrimaryKey("PK_AiFeedback", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AiPromptVersions",
+                name: "AiPromptVersion",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -95,7 +95,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AiPromptVersions", x => x.Id);
+                    table.PrimaryKey("PK_AiPromptVersion", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -119,7 +119,7 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Businesses",
+                name: "Business",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -143,11 +143,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Businesses", x => x.Id);
+                    table.PrimaryKey("PK_Business", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "BusinessMembers",
+                name: "BusinessMember",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -162,7 +162,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BusinessMembers", x => x.Id);
+                    table.PrimaryKey("PK_BusinessMember", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -185,37 +185,7 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DisputeEvidence",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    DisputeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    EvidenceFileId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SubmittedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DisputeEvidence", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DisputeMessages",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    DisputeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SenderUserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Message = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DisputeMessages", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Disputes",
+                name: "Dispute",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -234,11 +204,41 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Disputes", x => x.Id);
+                    table.PrimaryKey("PK_Dispute", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "EvidenceFiles",
+                name: "DisputeEvidence",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    DisputeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    EvidenceFileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubmittedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DisputeEvidence", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DisputeMessage",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    DisputeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SenderUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DisputeMessage", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EvidenceFile",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -255,11 +255,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EvidenceFiles", x => x.Id);
+                    table.PrimaryKey("PK_EvidenceFile", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "FaceMatchResults",
+                name: "FaceMatchResult",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -276,7 +276,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FaceMatchResults", x => x.Id);
+                    table.PrimaryKey("PK_FaceMatchResult", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -317,7 +317,7 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LedgerEntries",
+                name: "LedgerEntry",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -329,16 +329,15 @@ namespace Naitrust.Infrastructure.Migrations
                     CreditMinor = table.Column<long>(type: "bigint", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
                     Memo = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LedgerEntries", x => x.Id);
+                    table.PrimaryKey("PK_LedgerEntry", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Milestones",
+                name: "Milestone",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -357,7 +356,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Milestones", x => x.Id);
+                    table.PrimaryKey("PK_Milestone", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -377,7 +376,7 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Notifications",
+                name: "Notification",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -394,7 +393,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.PrimaryKey("PK_Notification", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -416,7 +415,7 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OwnershipChecks",
+                name: "OwnershipCheck",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -433,11 +432,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OwnershipChecks", x => x.Id);
+                    table.PrimaryKey("PK_OwnershipCheck", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Parties",
+                name: "Party",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -456,11 +455,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Parties", x => x.Id);
+                    table.PrimaryKey("PK_Party", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentInstructions",
+                name: "PaymentInstruction",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -480,11 +479,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PaymentInstructions", x => x.Id);
+                    table.PrimaryKey("PK_PaymentInstruction", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentPartnerEvents",
+                name: "PaymentPartnerEvent",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -498,11 +497,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PaymentPartnerEvents", x => x.Id);
+                    table.PrimaryKey("PK_PaymentPartnerEvent", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PayoutAccounts",
+                name: "PayoutAccount",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -521,7 +520,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PayoutAccounts", x => x.Id);
+                    table.PrimaryKey("PK_PayoutAccount", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -541,7 +540,7 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ReleaseRequests",
+                name: "ReleaseRequest",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -553,7 +552,6 @@ namespace Naitrust.Infrastructure.Migrations
                     Reason = table.Column<string>(type: "text", nullable: true),
                     RequestedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ResolvedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
@@ -561,7 +559,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ReleaseRequests", x => x.Id);
+                    table.PrimaryKey("PK_ReleaseRequest", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -584,7 +582,7 @@ namespace Naitrust.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ReputationProfiles",
+                name: "ReputationProfile",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -603,11 +601,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ReputationProfiles", x => x.Id);
+                    table.PrimaryKey("PK_ReputationProfile", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Reviews",
+                name: "Review",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -621,36 +619,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.PrimaryKey("PK_Review", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransactionParties",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TransactionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
-                    BusinessId = table.Column<Guid>(type: "uuid", nullable: true),
-                    PartyType = table.Column<int>(type: "integer", nullable: false),
-                    PartyMode = table.Column<int>(type: "integer", nullable: false),
-                    DisplayName = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: true),
-                    Phone = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    AcceptedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TransactionParties", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Transactions",
+                name: "Transaction",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -674,7 +647,6 @@ namespace Naitrust.Infrastructure.Migrations
                     AutoConfirmAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CancelledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
@@ -682,11 +654,36 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Transactions", x => x.Id);
+                    table.PrimaryKey("PK_Transaction", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransactionTypes",
+                name: "TransactionParty",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TransactionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    BusinessId = table.Column<Guid>(type: "uuid", nullable: true),
+                    PartyType = table.Column<int>(type: "integer", nullable: false),
+                    PartyMode = table.Column<int>(type: "integer", nullable: false),
+                    DisplayName = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    Phone = table.Column<string>(type: "text", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    AcceptedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TransactionParty", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TransactionType",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -705,11 +702,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TransactionTypes", x => x.Id);
+                    table.PrimaryKey("PK_TransactionType", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "User",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -732,11 +729,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_User", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "VectorDocuments",
+                name: "VectorDocument",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -749,11 +746,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VectorDocuments", x => x.Id);
+                    table.PrimaryKey("PK_VectorDocument", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "VerificationDocuments",
+                name: "VerificationDocument",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -773,11 +770,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VerificationDocuments", x => x.Id);
+                    table.PrimaryKey("PK_VerificationDocument", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "VerificationProviderEvents",
+                name: "VerificationProviderEvent",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -790,11 +787,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VerificationProviderEvents", x => x.Id);
+                    table.PrimaryKey("PK_VerificationProviderEvent", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "VerificationRequests",
+                name: "VerificationRequest",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -821,11 +818,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VerificationRequests", x => x.Id);
+                    table.PrimaryKey("PK_VerificationRequest", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "VerificationSteps",
+                name: "VerificationStep",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -843,11 +840,11 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VerificationSteps", x => x.Id);
+                    table.PrimaryKey("PK_VerificationStep", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "VirtualAccounts",
+                name: "VirtualAccount",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -863,7 +860,6 @@ namespace Naitrust.Infrastructure.Migrations
                     Status = table.Column<int>(type: "integer", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     FundedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
@@ -871,7 +867,7 @@ namespace Naitrust.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VirtualAccounts", x => x.Id);
+                    table.PrimaryKey("PK_VirtualAccount", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -910,43 +906,43 @@ namespace Naitrust.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Agreements");
+                name: "Agreement");
 
             migrationBuilder.DropTable(
-                name: "AiAssessments");
+                name: "AiAssessment");
 
             migrationBuilder.DropTable(
-                name: "AiFeedbacks");
+                name: "AiFeedback");
 
             migrationBuilder.DropTable(
-                name: "AiPromptVersions");
+                name: "AiPromptVersion");
 
             migrationBuilder.DropTable(
                 name: "AuditLogs");
 
             migrationBuilder.DropTable(
-                name: "Businesses");
+                name: "Business");
 
             migrationBuilder.DropTable(
-                name: "BusinessMembers");
+                name: "BusinessMember");
 
             migrationBuilder.DropTable(
                 name: "ContactMessages");
 
             migrationBuilder.DropTable(
+                name: "Dispute");
+
+            migrationBuilder.DropTable(
                 name: "DisputeEvidence");
 
             migrationBuilder.DropTable(
-                name: "DisputeMessages");
+                name: "DisputeMessage");
 
             migrationBuilder.DropTable(
-                name: "Disputes");
+                name: "EvidenceFile");
 
             migrationBuilder.DropTable(
-                name: "EvidenceFiles");
-
-            migrationBuilder.DropTable(
-                name: "FaceMatchResults");
+                name: "FaceMatchResult");
 
             migrationBuilder.DropTable(
                 name: "Feedbacks");
@@ -955,82 +951,81 @@ namespace Naitrust.Infrastructure.Migrations
                 name: "IdempotencyKeys");
 
             migrationBuilder.DropTable(
-                name: "LedgerEntries");
+                name: "LedgerEntry");
 
             migrationBuilder.DropTable(
-                name: "Milestones");
+                name: "Milestone");
 
             migrationBuilder.DropTable(
                 name: "NewsletterSubscribers");
 
             migrationBuilder.DropTable(
-                name: "Notifications");
+                name: "Notification");
 
             migrationBuilder.DropTable(
                 name: "OutboxMessages");
 
             migrationBuilder.DropTable(
-                name: "OwnershipChecks");
+                name: "OwnershipCheck");
 
             migrationBuilder.DropTable(
-                name: "Parties");
+                name: "Party");
 
             migrationBuilder.DropTable(
-                name: "PaymentInstructions");
+                name: "PaymentInstruction");
 
             migrationBuilder.DropTable(
-                name: "PaymentPartnerEvents");
+                name: "PaymentPartnerEvent");
 
             migrationBuilder.DropTable(
-                name: "PayoutAccounts");
+                name: "PayoutAccount");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "ReleaseRequests");
+                name: "ReleaseRequest");
 
             migrationBuilder.DropTable(
                 name: "ReportedConcerns");
 
             migrationBuilder.DropTable(
-                name: "ReputationProfiles");
+                name: "ReputationProfile");
 
             migrationBuilder.DropTable(
-                name: "Reviews");
+                name: "Review");
 
             migrationBuilder.DropTable(
-                name: "TransactionParties");
+                name: "Transaction");
 
             migrationBuilder.DropTable(
-                name: "Transactions");
+                name: "TransactionParty");
 
             migrationBuilder.DropTable(
-                name: "TransactionTypes");
+                name: "TransactionType");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "User");
 
             migrationBuilder.DropTable(
-                name: "VectorDocuments");
+                name: "VectorDocument");
 
             migrationBuilder.DropTable(
-                name: "VerificationDocuments");
+                name: "VerificationDocument");
 
             migrationBuilder.DropTable(
-                name: "VerificationProviderEvents");
+                name: "VerificationProviderEvent");
 
             migrationBuilder.DropTable(
-                name: "VerificationRequests");
+                name: "VerificationRequest");
 
             migrationBuilder.DropTable(
-                name: "VerificationSteps");
+                name: "VerificationStep");
 
             migrationBuilder.DropTable(
-                name: "VirtualAccounts");
+                name: "VirtualAccount");
 
             migrationBuilder.DropTable(
                 name: "WaitlistEntries");
         }
-    }
 }

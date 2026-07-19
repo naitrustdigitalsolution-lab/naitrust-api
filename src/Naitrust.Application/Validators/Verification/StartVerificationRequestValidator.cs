@@ -7,6 +7,9 @@ public class StartVerificationRequestValidator : AbstractValidator<StartVerifica
 {
     public StartVerificationRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.SubjectType).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.SubjectId).NotEmpty();
+        RuleFor(x => x.VerificationType).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.VerificationLevel).MaximumLength(50);
     }
 }

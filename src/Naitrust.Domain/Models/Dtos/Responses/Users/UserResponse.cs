@@ -6,7 +6,7 @@ public record UserResponse(
     string? Phone,
     string FirstName,
     string LastName,
-    string Role,
+    IList<string> Roles,
     string Status,
     DateTime? EmailVerifiedAt,
     DateTime? PhoneVerifiedAt,

@@ -7,6 +7,8 @@ public class CreateMilestoneRequestValidator : AbstractValidator<CreateMilestone
 {
     public CreateMilestoneRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Description).MaximumLength(2000);
+        RuleFor(x => x.AmountMinor).GreaterThan(0);
     }
 }

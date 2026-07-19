@@ -7,6 +7,7 @@ public class RequestReleaseValidator : AbstractValidator<RequestReleaseRequest>
 {
     public RequestReleaseValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.TransactionId).NotEmpty();
+        RuleFor(x => x.Reason).MaximumLength(2000);
     }
 }

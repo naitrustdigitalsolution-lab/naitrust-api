@@ -17,10 +17,89 @@ namespace Naitrust.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.28")
+                .HasAnnotation("ProductVersion", "8.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Agreement", b =>
                 {
@@ -84,7 +163,12 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agreements");
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("TransactionId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("Agreements", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AiAssessment", b =>
@@ -93,32 +177,37 @@ namespace Naitrust.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AssessmentType")
-                        .HasColumnType("integer");
+                    b.Property<string>("AssessmentType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal?>("Confidence")
-                        .HasColumnType("numeric");
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("EntityId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("EntityType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("InputRefs")
                         .HasColumnType("text");
 
                     b.Property<string>("Model")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Output")
                         .IsRequired()
@@ -127,12 +216,14 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<string>("PromptVersion")
                         .HasColumnType("text");
 
-                    b.Property<int?>("RiskLevel")
-                        .HasColumnType("integer");
+                    b.Property<string>("RiskLevel")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("AiAssessments");
+                    b.HasIndex("EntityType", "EntityId");
+
+                    b.ToTable("AiAssessments", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AiFeedback", b =>
@@ -147,8 +238,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("FeedbackType")
-                        .HasColumnType("integer");
+                    b.Property<string>("FeedbackType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Notes")
                         .HasColumnType("text");
@@ -158,7 +250,11 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AiFeedbacks");
+                    b.HasIndex("AssessmentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AiFeedbacks", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AiPromptVersion", b =>
@@ -178,7 +274,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Purpose")
                         .HasColumnType("text");
@@ -186,8 +283,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<string>("Schema")
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -197,7 +295,10 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AiPromptVersions");
+                    b.HasIndex("Name", "Version")
+                        .IsUnique();
+
+                    b.ToTable("AiPromptVersions", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.AuditLog", b =>
@@ -240,7 +341,15 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("EntityId");
+
+                    b.HasIndex("EntityType", "Action");
+
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Business", b =>
@@ -250,14 +359,16 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Address")
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime?>("BusinessVerifiedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -270,7 +381,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<Guid>("OwnerUserId")
                         .HasColumnType("uuid");
@@ -279,20 +391,24 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RegistrationNumber")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
-                    b.Property<int?>("RiskLevel")
-                        .HasColumnType("integer");
+                    b.Property<string>("RiskLevel")
+                        .HasColumnType("text");
 
                     b.Property<string>("State")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("TaxId")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -300,12 +416,19 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime?>("VerificationExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("VerificationStatus")
-                        .HasColumnType("integer");
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Businesses");
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("RegistrationNumber");
+
+                    b.HasIndex("VerificationStatus");
+
+                    b.ToTable("Businesses", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.BusinessMember", b =>
@@ -326,11 +449,13 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("integer");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -340,7 +465,12 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BusinessMembers");
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("BusinessId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("BusinessMembers", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.ContactMessage", b =>
@@ -383,7 +513,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContactMessages");
+                    b.ToTable("ContactMessages", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Dispute", b =>
@@ -412,16 +542,18 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Reason")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
-                    b.Property<int?>("Resolution")
-                        .HasColumnType("integer");
+                    b.Property<string>("Resolution")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
@@ -431,7 +563,13 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Disputes");
+                    b.HasIndex("AdminOwnerId");
+
+                    b.HasIndex("OpenedByUserId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("Disputes", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.DisputeEvidence", b =>
@@ -454,7 +592,14 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DisputeEvidence");
+                    b.HasIndex("EvidenceFileId");
+
+                    b.HasIndex("SubmittedByUserId");
+
+                    b.HasIndex("DisputeId", "EvidenceFileId")
+                        .IsUnique();
+
+                    b.ToTable("DisputeEvidence", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.DisputeMessage", b =>
@@ -478,7 +623,11 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DisputeMessages");
+                    b.HasIndex("DisputeId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.ToTable("DisputeMessages", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.EvidenceFile", b =>
@@ -495,34 +644,44 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("FileName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
 
                     b.Property<string>("FileUrl")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<Guid?>("MilestoneId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("MimeType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UploadedByUserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.ToTable("EvidenceFiles");
+                    b.HasIndex("MilestoneId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("UploadedByUserId");
+
+                    b.ToTable("EvidenceFiles", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.FaceMatchResult", b =>
@@ -532,17 +691,20 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Confidence")
-                        .HasColumnType("numeric");
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("IdNumberHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
-                    b.Property<int>("IdType")
-                        .HasColumnType("integer");
+                    b.Property<string>("IdType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<bool>("LivenessPassed")
                         .HasColumnType("boolean");
@@ -551,11 +713,13 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<decimal>("MatchScore")
-                        .HasColumnType("numeric");
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
 
                     b.Property<string>("Provider")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("RawProviderResponse")
                         .HasColumnType("text");
@@ -565,7 +729,9 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FaceMatchResults");
+                    b.HasIndex("VerificationRequestId");
+
+                    b.ToTable("FaceMatchResults", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Feedback", b =>
@@ -604,7 +770,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Feedbacks");
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.IdempotencyKey", b =>
@@ -621,23 +787,31 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Key")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("RequestHash")
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("ResponseBody")
                         .HasColumnType("text");
 
                     b.Property<string>("Scope")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("StatusCode")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.ToTable("IdempotencyKeys");
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("Key", "Scope")
+                        .IsUnique();
+
+                    b.ToTable("IdempotencyKeys", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.LedgerEntry", b =>
@@ -648,7 +822,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Account")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -658,7 +833,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<long>("DebitMinor")
                         .HasColumnType("bigint");
@@ -666,8 +842,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<Guid>("EntryGroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("EventType")
-                        .HasColumnType("integer");
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Memo")
                         .HasColumnType("text");
@@ -683,7 +860,13 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LedgerEntries");
+                    b.HasIndex("EntryGroupId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("TransactionId", "EventType");
+
+                    b.ToTable("LedgerEntries", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Milestone", b =>
@@ -713,15 +896,17 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("SubmittedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
@@ -731,7 +916,185 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Milestones");
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("Milestones", (string)null);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.NaitrustRole", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("Roles", (string)null);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.NaitrustRoleClaim", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.NaitrustUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("EmailVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("IdentityVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastLivenessVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("LastTransactionActivityAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("PhoneVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.NewsletterSubscriber", b =>
@@ -762,7 +1125,7 @@ namespace Naitrust.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("NewsletterSubscribers");
+                    b.ToTable("NewsletterSubscribers", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Notification", b =>
@@ -792,10 +1155,12 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -805,7 +1170,11 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notifications");
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "ReadAt");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.OutboxMessage", b =>
@@ -819,7 +1188,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -839,7 +1209,9 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OutboxMessages");
+                    b.HasIndex("ProcessedAt");
+
+                    b.ToTable("OutboxMessages", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.OwnershipCheck", b =>
@@ -863,11 +1235,13 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Method")
-                        .HasColumnType("integer");
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -880,7 +1254,14 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OwnershipChecks");
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VerificationRequestId", "BusinessId")
+                        .IsUnique();
+
+                    b.ToTable("OwnershipChecks", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Party", b =>
@@ -893,17 +1274,20 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("BvnReference")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("CacReference")
-                        .HasColumnType("text");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -913,7 +1297,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("PartyType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<Guid?>("ReputationProfileId")
                         .HasColumnType("uuid");
@@ -925,11 +1310,18 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("VerificationStatus")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Parties");
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("ReputationProfileId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Parties", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.PaymentInstruction", b =>
@@ -943,10 +1335,12 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
-                    b.Property<int>("InstructionType")
-                        .HasColumnType("integer");
+                    b.Property<string>("InstructionType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -954,20 +1348,24 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Partner")
-                        .HasColumnType("integer");
+                    b.Property<string>("Partner")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("PartnerReference")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("PartnerResponse")
                         .HasColumnType("text");
 
                     b.Property<string>("SignedPayloadHash")
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
@@ -980,7 +1378,14 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PaymentInstructions");
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("VirtualAccountId");
+
+                    b.ToTable("PaymentInstructions", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.PaymentPartnerEvent", b =>
@@ -994,10 +1399,12 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<int>("Partner")
-                        .HasColumnType("integer");
+                    b.Property<string>("Partner")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Payload")
                         .IsRequired()
@@ -1008,14 +1415,20 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("ProviderEventId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<Guid>("VirtualAccountId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.ToTable("PaymentPartnerEvents");
+                    b.HasIndex("ProviderEventId")
+                        .IsUnique();
+
+                    b.HasIndex("VirtualAccountId");
+
+                    b.ToTable("PaymentPartnerEvents", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.PayoutAccount", b =>
@@ -1025,18 +1438,22 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AccountName")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("AccountNumberHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("BankCode")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("BankName")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1047,14 +1464,16 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("NameMatchStatus")
-                        .HasColumnType("integer");
+                    b.Property<string>("NameMatchStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("PartyId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("ProviderReference")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1064,7 +1483,9 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PayoutAccounts");
+                    b.HasIndex("PartyId");
+
+                    b.ToTable("PayoutAccounts", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.RefreshToken", b =>
@@ -1084,14 +1505,22 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.ToTable("RefreshTokens");
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.ReleaseRequest", b =>
@@ -1110,10 +1539,12 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Provider")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("ProviderReference")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Reason")
                         .HasColumnType("text");
@@ -1127,8 +1558,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
@@ -1144,7 +1576,11 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReleaseRequests");
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("ReleaseRequests", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.ReportedConcern", b =>
@@ -1187,7 +1623,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReportedConcerns");
+                    b.ToTable("ReportedConcerns", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.ReputationProfile", b =>
@@ -1215,7 +1651,8 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<decimal>("RatingAverage")
-                        .HasColumnType("numeric");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
 
                     b.Property<int>("RatingCount")
                         .HasColumnType("integer");
@@ -1223,8 +1660,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("SubjectType")
-                        .HasColumnType("integer");
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<long>("TotalCompletedValue")
                         .HasColumnType("bigint");
@@ -1234,7 +1672,10 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReputationProfiles");
+                    b.HasIndex("SubjectType", "SubjectId")
+                        .IsUnique();
+
+                    b.ToTable("ReputationProfiles", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Review", b =>
@@ -1255,8 +1696,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<Guid>("RevieweeSubjectId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("RevieweeSubjectType")
-                        .HasColumnType("integer");
+                    b.Property<string>("RevieweeSubjectType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("ReviewerUserId")
                         .HasColumnType("uuid");
@@ -1266,7 +1708,12 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Reviews");
+                    b.HasIndex("ReviewerUserId");
+
+                    b.HasIndex("TransactionId", "ReviewerUserId")
+                        .IsUnique();
+
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Transaction", b =>
@@ -1290,8 +1737,9 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Category")
-                        .HasColumnType("integer");
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1304,7 +1752,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -1318,28 +1767,33 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("PartyMode")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PaymentStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Reference")
+                    b.Property<string>("PartyMode")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("RiskLevel")
-                        .HasColumnType("integer");
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("RiskLevel")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("TermsAcceptedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<Guid>("TransactionTypeId")
                         .HasColumnType("uuid");
@@ -1347,8 +1801,8 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("VerificationLevelRequired")
-                        .HasColumnType("integer");
+                    b.Property<string>("VerificationLevelRequired")
+                        .HasColumnType("text");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1358,7 +1812,20 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Transactions");
+                    b.HasIndex("AgreementId");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
+                    b.HasIndex("TransactionTypeId");
+
+                    b.HasIndex("Status", "PaymentStatus");
+
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.TransactionParty", b =>
@@ -1378,10 +1845,12 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Email")
-                        .HasColumnType("text");
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1389,17 +1858,21 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("PartyMode")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PartyType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Phone")
+                    b.Property<string>("PartyMode")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("PartyType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uuid");
@@ -1412,7 +1885,15 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TransactionParties");
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TransactionId", "UserId");
+
+                    b.ToTable("TransactionParties", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.TransactionType", b =>
@@ -1444,87 +1925,31 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Key")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ReleaseMode")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("ReleaseMode")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RequiredVerificationLevel")
-                        .HasColumnType("integer");
+                    b.Property<string>("RequiredVerificationLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.ToTable("TransactionTypes");
-                });
+                    b.HasIndex("Key")
+                        .IsUnique();
 
-            modelBuilder.Entity("Naitrust.Domain.Models.Entities.User", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("EmailVerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("IdentityVerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("LastLivenessVerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("LastTransactionActivityAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("PhoneVerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
+                    b.ToTable("TransactionTypes", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VectorDocument", b =>
@@ -1541,7 +1966,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("EmbeddingModel")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Metadata")
                         .HasColumnType("text");
@@ -1551,11 +1977,14 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("SourceType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("VectorDocuments");
+                    b.HasIndex("SourceType", "SourceId");
+
+                    b.ToTable("VectorDocuments", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationDocument", b =>
@@ -1567,19 +1996,22 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DocumentType")
-                        .HasColumnType("integer");
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("FileName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
 
                     b.Property<string>("FileUrl")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1589,13 +2021,15 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("MimeType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("ReviewNotes")
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1608,7 +2042,11 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationDocuments");
+                    b.HasIndex("UploadedByUserId");
+
+                    b.HasIndex("VerificationRequestId");
+
+                    b.ToTable("VerificationDocuments", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationProviderEvent", b =>
@@ -1622,7 +2060,8 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Payload")
                         .IsRequired()
@@ -1630,18 +2069,24 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.Property<string>("Provider")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("ProviderReference")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<Guid>("VerificationRequestId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationProviderEvents");
+                    b.HasIndex("ProviderReference");
+
+                    b.HasIndex("VerificationRequestId");
+
+                    b.ToTable("VerificationProviderEvents", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationRequest", b =>
@@ -1663,16 +2108,20 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("PaymentReference")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("PaymentStatus")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Provider")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("ProviderReference")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<Guid>("RequestedByUserId")
                         .HasColumnType("uuid");
@@ -1689,14 +2138,16 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<string>("RiskFlags")
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("SubjectType")
-                        .HasColumnType("integer");
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("TransactionId")
                         .HasColumnType("uuid");
@@ -1704,15 +2155,25 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("VerificationLevel")
-                        .HasColumnType("integer");
+                    b.Property<string>("VerificationLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("VerificationType")
-                        .HasColumnType("integer");
+                    b.Property<string>("VerificationType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationRequests");
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("ReviewedBy");
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("SubjectType", "SubjectId");
+
+                    b.ToTable("VerificationRequests", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationStep", b =>
@@ -1737,16 +2198,19 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Provider")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("Step")
-                        .HasColumnType("integer");
+                    b.Property<string>("Step")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1756,7 +2220,10 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VerificationSteps");
+                    b.HasIndex("VerificationRequestId", "Step")
+                        .IsUnique();
+
+                    b.ToTable("VerificationSteps", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VirtualAccount", b =>
@@ -1766,26 +2233,30 @@ namespace Naitrust.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AccountName")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("AccountNumber")
-                        .HasColumnType("text");
-
-                    b.Property<long>("AmountExpectedMinor")
-                        .HasColumnType("bigint");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<long>("AmountReceivedMinor")
                         .HasColumnType("bigint");
 
                     b.Property<string>("BankName")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("BusinessId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
@@ -1799,20 +2270,27 @@ namespace Naitrust.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Partner")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ProviderReference")
+                    b.Property<string>("Partner")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("ProviderReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
-                    b.Property<Guid>("TransactionId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -1822,7 +2300,16 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VirtualAccounts");
+                    b.HasIndex("AccountNumber")
+                        .IsUnique();
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("VirtualAccounts", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.WaitlistEntry", b =>
@@ -1866,7 +2353,449 @@ namespace Naitrust.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("WaitlistEntries");
+                    b.ToTable("WaitlistEntries", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Agreement", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.AiFeedback", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.AiAssessment", null)
+                        .WithMany()
+                        .HasForeignKey("AssessmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Business", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.BusinessMember", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Business", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Dispute", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("AdminOwnerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("OpenedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.DisputeEvidence", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Dispute", null)
+                        .WithMany()
+                        .HasForeignKey("DisputeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.EvidenceFile", null)
+                        .WithMany()
+                        .HasForeignKey("EvidenceFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("SubmittedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.DisputeMessage", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Dispute", null)
+                        .WithMany()
+                        .HasForeignKey("DisputeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("SenderUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.EvidenceFile", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Milestone", null)
+                        .WithMany()
+                        .HasForeignKey("MilestoneId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.FaceMatchResult", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.VerificationRequest", null)
+                        .WithMany()
+                        .HasForeignKey("VerificationRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.LedgerEntry", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Milestone", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.NaitrustRoleClaim", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustRole", null)
+                        .WithMany("RoleClaims")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Notification", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.OwnershipCheck", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Business", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.VerificationRequest", null)
+                        .WithMany()
+                        .HasForeignKey("VerificationRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Party", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Business", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.ReputationProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ReputationProfileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.PaymentInstruction", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.VirtualAccount", null)
+                        .WithMany()
+                        .HasForeignKey("VirtualAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.PaymentPartnerEvent", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.VirtualAccount", null)
+                        .WithMany()
+                        .HasForeignKey("VirtualAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.PayoutAccount", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Party", null)
+                        .WithMany()
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.ReleaseRequest", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Review", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Transaction", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Agreement", null)
+                        .WithMany()
+                        .HasForeignKey("AgreementId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Business", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.TransactionType", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.TransactionParty", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Business", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationDocument", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.VerificationRequest", null)
+                        .WithMany()
+                        .HasForeignKey("VerificationRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationProviderEvent", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.VerificationRequest", null)
+                        .WithMany()
+                        .HasForeignKey("VerificationRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationRequest", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.VerificationStep", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.VerificationRequest", null)
+                        .WithMany()
+                        .HasForeignKey("VerificationRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.VirtualAccount", b =>
+                {
+                    b.HasOne("Naitrust.Domain.Models.Entities.Business", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.NaitrustRole", b =>
+                {
+                    b.Navigation("RoleClaims");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,13 +1,15 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Naitrust.Domain.Models.Entities;
 
 namespace Naitrust.Infrastructure.Context;
 
-public class NaitrustDbContext : DbContext
+public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, Guid, IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>, NaitrustRoleClaim, IdentityUserToken<Guid>>
 {
     private readonly IHttpContextAccessor? _httpContextAccessor;
     private bool _isSavingAudit;
@@ -18,8 +20,7 @@ public class NaitrustDbContext : DbContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    // Core
-    public DbSet<User> Users => Set<User>();
+    // Core (Users is provided by IdentityDbContext)
     public DbSet<Business> Businesses => Set<Business>();
     public DbSet<BusinessMember> BusinessMembers => Set<BusinessMember>();
     public DbSet<Party> Parties => Set<Party>();
@@ -73,6 +74,9 @@ public class NaitrustDbContext : DbContext
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<ReportedConcern> ReportedConcerns => Set<ReportedConcern>();
 
+    // Roles
+    public DbSet<NaitrustRoleClaim> NaitrustRoleClaims => Set<NaitrustRoleClaim>();
+
     // Infrastructure
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
@@ -85,25 +89,21 @@ public class NaitrustDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BaseEntity).Assembly);
 
         // Soft-delete query filters
-        modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<NaitrustUser>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Business>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Transaction>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<VirtualAccount>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Dispute>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Party>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Notification>().HasQueryFilter(e => !e.IsDeleted);
+
+        modelBuilder.Entity<NaitrustRoleClaim>().ToTable("RoleClaims");
 
         // Concurrency tokens on financial/critical entities
         modelBuilder.Entity<Transaction>().Property<uint>("xmin").IsRowVersion();
         modelBuilder.Entity<LedgerEntry>().Property<uint>("xmin").IsRowVersion();
         modelBuilder.Entity<VirtualAccount>().Property<uint>("xmin").IsRowVersion();
         modelBuilder.Entity<ReleaseRequest>().Property<uint>("xmin").IsRowVersion();
-
-        // AuditLog column constraints
-        modelBuilder.Entity<AuditLog>(b =>
-        {
-            b.Property(a => a.EntityType).HasMaxLength(128);
-            b.Property(a => a.Action).HasMaxLength(32);
-            b.Property(a => a.IpAddress).HasMaxLength(64);
-        });
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -122,7 +122,25 @@ public class NaitrustDbContext : DbContext
                     entry.Entity.CreatedAt = DateTime.UtcNow;
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
                     if (entry.Entity.Id == Guid.Empty)
+                    {
                         entry.Entity.Id = Guid.NewGuid();
+                    }
+
+                    break;
+                case EntityState.Modified:
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    break;
+            }
+        }
+
+        // Auto-set timestamps on NaitrustUser (not a BaseEntity)
+        foreach (var entry in ChangeTracker.Entries<NaitrustUser>())
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
                     break;
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
@@ -157,7 +175,9 @@ public class NaitrustDbContext : DbContext
         foreach (var entry in ChangeTracker.Entries())
         {
             if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+            {
                 continue;
+            }
 
             var auditEntry = new AuditEntry(entry)
             {

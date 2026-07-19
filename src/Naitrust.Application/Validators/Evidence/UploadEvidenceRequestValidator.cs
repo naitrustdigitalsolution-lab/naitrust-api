@@ -7,6 +7,8 @@ public class UploadEvidenceRequestValidator : AbstractValidator<UploadEvidenceRe
 {
     public UploadEvidenceRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.TransactionId).NotEmpty();
+        RuleFor(x => x.Type).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.Description).MaximumLength(2000);
     }
 }
