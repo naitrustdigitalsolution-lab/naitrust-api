@@ -1,6 +1,8 @@
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Naitrust.Api.Configuration;
 using Naitrust.Api.Middleware;
+using Naitrust.Infrastructure.Context;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAllServices(builder.Configuration);
 
 var app = builder.Build();
+
+// Apply pending migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<NaitrustDbContext>();
+    var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
+    if (pendingMigrations.Any())
+    {
+        app.Logger.LogInformation("Applying {Count} pending migration(s)...", pendingMigrations.Count());
+        await db.Database.MigrateAsync();
+    }
+}
 
 // Middleware pipeline
 app.UseMiddleware<CorrelationIdMiddleware>();
