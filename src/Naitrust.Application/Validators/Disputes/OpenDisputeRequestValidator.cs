@@ -7,6 +7,8 @@ public class OpenDisputeRequestValidator : AbstractValidator<OpenDisputeRequest>
 {
     public OpenDisputeRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.TransactionId).NotEmpty();
+        RuleFor(x => x.Reason).NotEmpty().MaximumLength(500);
+        RuleFor(x => x.Description).MaximumLength(5000);
     }
 }

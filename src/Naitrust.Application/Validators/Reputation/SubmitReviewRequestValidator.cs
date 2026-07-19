@@ -7,6 +7,8 @@ public class SubmitReviewRequestValidator : AbstractValidator<SubmitReviewReques
 {
     public SubmitReviewRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.TransactionId).NotEmpty();
+        RuleFor(x => x.Rating).InclusiveBetween(1, 5);
+        RuleFor(x => x.Comment).MaximumLength(2000);
     }
 }

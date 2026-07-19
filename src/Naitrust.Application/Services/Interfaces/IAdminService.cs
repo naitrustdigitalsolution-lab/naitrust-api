@@ -9,11 +9,38 @@ namespace Naitrust.Application.Services.Interfaces;
 
 public interface IAdminService
 {
+    /// <summary>
+    /// Retrieves a paginated list of all transactions for administrative review.
+    /// </summary>
     Task<NaitrustResponse<PaginatedResponse<TransactionResponse>>> GetTransactionsAsync(PaginationRequest pagination, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a single transaction by ID with full details for administrative review.
+    /// </summary>
     Task<NaitrustResponse<TransactionResponse>> GetTransactionAsync(Guid transactionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a paginated list of all disputes for administrative review.
+    /// </summary>
     Task<NaitrustResponse<PaginatedResponse<DisputeResponse>>> GetDisputesAsync(PaginationRequest pagination, CancellationToken ct = default);
+
+    /// <summary>
+    /// Resolves a dispute with an administrative decision (approve, reject, escalate).
+    /// </summary>
     Task<NaitrustResponse<DisputeResponse>> ResolveDisputeAsync(Guid disputeId, ResolveAdminDisputeRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a paginated list of all verification requests for administrative review.
+    /// </summary>
     Task<NaitrustResponse<PaginatedResponse<VerificationRequestResponse>>> GetVerificationsAsync(PaginationRequest pagination, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a verification request's status (approve, reject, request more info).
+    /// </summary>
     Task<NaitrustResponse<VerificationRequestResponse>> UpdateVerificationAsync(Guid verificationId, UpdateAdminVerificationRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves paginated system audit logs for administrative review.
+    /// </summary>
     Task<NaitrustResponse<PaginatedResponse<AuditLogResponse>>> GetAuditLogsAsync(PaginationRequest pagination, CancellationToken ct = default);
 }

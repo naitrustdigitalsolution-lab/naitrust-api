@@ -8,6 +8,10 @@ public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage
 {
     public void Configure(EntityTypeBuilder<OutboxMessage> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("OutboxMessages");
+
+        builder.Property(x => x.EventType).HasMaxLength(100).IsRequired();
+
+        builder.HasIndex(x => x.ProcessedAt);
     }
 }

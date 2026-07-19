@@ -8,6 +8,8 @@ public class ContactMessageConfiguration : IEntityTypeConfiguration<ContactMessa
 {
     public void Configure(EntityTypeBuilder<ContactMessage> builder)
     {
+        builder.ToTable("ContactMessages");
+
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Email).HasMaxLength(320).IsRequired();
         builder.Property(x => x.Subject).HasMaxLength(300).IsRequired();

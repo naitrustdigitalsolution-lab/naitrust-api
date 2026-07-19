@@ -7,6 +7,6 @@ public class AddDisputeEvidenceRequestValidator : AbstractValidator<AddDisputeEv
 {
     public AddDisputeEvidenceRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.EvidenceFileId).NotEmpty();
     }
 }

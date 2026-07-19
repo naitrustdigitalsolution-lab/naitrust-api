@@ -8,6 +8,8 @@ public class WaitlistEntryConfiguration : IEntityTypeConfiguration<WaitlistEntry
 {
     public void Configure(EntityTypeBuilder<WaitlistEntry> builder)
     {
+        builder.ToTable("WaitlistEntries");
+
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Email).HasMaxLength(320).IsRequired();
         builder.Property(x => x.Phone).HasMaxLength(20);

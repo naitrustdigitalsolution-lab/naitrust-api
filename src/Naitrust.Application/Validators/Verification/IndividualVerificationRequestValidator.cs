@@ -7,6 +7,10 @@ public class IndividualVerificationRequestValidator : AbstractValidator<Individu
 {
     public IndividualVerificationRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.IdType).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.IdNumber).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Phone).MaximumLength(20);
     }
 }

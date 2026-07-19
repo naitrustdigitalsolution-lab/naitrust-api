@@ -7,6 +7,7 @@ public class ValidatePayoutAccountRequestValidator : AbstractValidator<ValidateP
 {
     public ValidatePayoutAccountRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.BankCode).NotEmpty().MaximumLength(10);
+        RuleFor(x => x.AccountNumber).NotEmpty().MaximumLength(20);
     }
 }

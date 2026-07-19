@@ -8,6 +8,13 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 {
     public void Configure(EntityTypeBuilder<Review> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("Reviews");
+
+        builder.Property(x => x.RevieweeSubjectType).HasConversion<string>();
+
+        builder.HasIndex(x => new { x.TransactionId, x.ReviewerUserId }).IsUnique();
+
+        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.ReviewerUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

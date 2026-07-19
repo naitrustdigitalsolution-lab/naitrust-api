@@ -8,6 +8,18 @@ public class DisputeConfiguration : IEntityTypeConfiguration<Dispute>
 {
     public void Configure(EntityTypeBuilder<Dispute> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("Disputes");
+
+        builder.Property(x => x.Reason).HasMaxLength(200).IsRequired();
+
+        builder.Property(x => x.Status).HasConversion<string>();
+        builder.Property(x => x.Resolution).HasConversion<string>();
+
+        builder.HasIndex(x => x.TransactionId);
+        builder.HasIndex(x => x.OpenedByUserId);
+
+        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.OpenedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.AdminOwnerId).OnDelete(DeleteBehavior.SetNull);
     }
 }

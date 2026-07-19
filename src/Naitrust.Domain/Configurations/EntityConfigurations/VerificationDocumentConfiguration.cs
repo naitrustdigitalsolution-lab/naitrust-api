@@ -8,6 +8,18 @@ public class VerificationDocumentConfiguration : IEntityTypeConfiguration<Verifi
 {
     public void Configure(EntityTypeBuilder<VerificationDocument> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("VerificationDocuments");
+
+        builder.Property(x => x.FileUrl).HasMaxLength(2048).IsRequired();
+        builder.Property(x => x.FileName).HasMaxLength(500).IsRequired();
+        builder.Property(x => x.MimeType).HasMaxLength(100).IsRequired();
+
+        builder.Property(x => x.DocumentType).HasConversion<string>();
+        builder.Property(x => x.Status).HasConversion<string>();
+
+        builder.HasIndex(x => x.VerificationRequestId);
+
+        builder.HasOne<VerificationRequest>().WithMany().HasForeignKey(x => x.VerificationRequestId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.UploadedByUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

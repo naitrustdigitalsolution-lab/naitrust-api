@@ -23,7 +23,6 @@ public static class InfrastructureRegistration
         services.AddScoped<IUnitOfWork, UnitOfWork<NaitrustDbContext>>();
 
         // Security
-        services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IEncryptionHelper, EncryptionHelper>();
         services.AddSingleton<IWebhookSignatureValidator, WebhookSignatureValidator>();
 

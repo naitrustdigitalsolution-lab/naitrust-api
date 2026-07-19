@@ -1,13 +1,15 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Naitrust.Domain.Models.Entities;
 
 namespace Naitrust.Infrastructure.Context;
 
-public class NaitrustDbContext : DbContext
+public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, Guid, IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>, NaitrustRoleClaim, IdentityUserToken<Guid>>
 {
     private readonly IHttpContextAccessor? _httpContextAccessor;
     private bool _isSavingAudit;
@@ -18,53 +20,52 @@ public class NaitrustDbContext : DbContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    // // Core
-    // public DbSet<User> Users => Set<User>();
-    // public DbSet<Business> Businesses => Set<Business>();
-    // public DbSet<BusinessMember> BusinessMembers => Set<BusinessMember>();
-    // public DbSet<Party> Parties => Set<Party>();
+    // Core (Users is provided by IdentityDbContext)
+    public DbSet<Business> Businesses => Set<Business>();
+    public DbSet<BusinessMember> BusinessMembers => Set<BusinessMember>();
+    public DbSet<Party> Parties => Set<Party>();
 
-    // // Verification
-    // public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
-    // public DbSet<VerificationStep> VerificationSteps => Set<VerificationStep>();
-    // public DbSet<VerificationDocument> VerificationDocuments => Set<VerificationDocument>();
-    // public DbSet<FaceMatchResult> FaceMatchResults => Set<FaceMatchResult>();
-    // public DbSet<OwnershipCheck> OwnershipChecks => Set<OwnershipCheck>();
-    // public DbSet<VerificationProviderEvent> VerificationProviderEvents => Set<VerificationProviderEvent>();
+    // Verification
+    public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+    public DbSet<VerificationStep> VerificationSteps => Set<VerificationStep>();
+    public DbSet<VerificationDocument> VerificationDocuments => Set<VerificationDocument>();
+    public DbSet<FaceMatchResult> FaceMatchResults => Set<FaceMatchResult>();
+    public DbSet<OwnershipCheck> OwnershipChecks => Set<OwnershipCheck>();
+    public DbSet<VerificationProviderEvent> VerificationProviderEvents => Set<VerificationProviderEvent>();
 
-    // // Transactions
-    // public DbSet<Transaction> Transactions => Set<Transaction>();
-    // public DbSet<TransactionType> TransactionTypes => Set<TransactionType>();
-    // public DbSet<TransactionParty> TransactionParties => Set<TransactionParty>();
-    // public DbSet<Agreement> Agreements => Set<Agreement>();
-    // public DbSet<Milestone> Milestones => Set<Milestone>();
-    // public DbSet<EvidenceFile> EvidenceFiles => Set<EvidenceFile>();
+    // Transactions
+    public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<TransactionType> TransactionTypes => Set<TransactionType>();
+    public DbSet<TransactionParty> TransactionParties => Set<TransactionParty>();
+    public DbSet<Agreement> Agreements => Set<Agreement>();
+    public DbSet<Milestone> Milestones => Set<Milestone>();
+    public DbSet<EvidenceFile> EvidenceFiles => Set<EvidenceFile>();
 
-    // // Payments
-    // public DbSet<VirtualAccount> VirtualAccounts => Set<VirtualAccount>();
-    // public DbSet<PaymentPartnerEvent> PaymentPartnerEvents => Set<PaymentPartnerEvent>();
-    // public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
-    // public DbSet<PaymentInstruction> PaymentInstructions => Set<PaymentInstruction>();
-    // public DbSet<ReleaseRequest> ReleaseRequests => Set<ReleaseRequest>();
-    // public DbSet<PayoutAccount> PayoutAccounts => Set<PayoutAccount>();
+    // Payments
+    public DbSet<VirtualAccount> VirtualAccounts => Set<VirtualAccount>();
+    public DbSet<PaymentPartnerEvent> PaymentPartnerEvents => Set<PaymentPartnerEvent>();
+    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+    public DbSet<PaymentInstruction> PaymentInstructions => Set<PaymentInstruction>();
+    public DbSet<ReleaseRequest> ReleaseRequests => Set<ReleaseRequest>();
+    public DbSet<PayoutAccount> PayoutAccounts => Set<PayoutAccount>();
 
-    // // Disputes
-    // public DbSet<Dispute> Disputes => Set<Dispute>();
-    // public DbSet<DisputeMessage> DisputeMessages => Set<DisputeMessage>();
-    // public DbSet<DisputeEvidence> DisputeEvidence => Set<DisputeEvidence>();
+    // Disputes
+    public DbSet<Dispute> Disputes => Set<Dispute>();
+    public DbSet<DisputeMessage> DisputeMessages => Set<DisputeMessage>();
+    public DbSet<DisputeEvidence> DisputeEvidence => Set<DisputeEvidence>();
 
-    // // Reputation
-    // public DbSet<ReputationProfile> ReputationProfiles => Set<ReputationProfile>();
-    // public DbSet<Review> Reviews => Set<Review>();
+    // Reputation
+    public DbSet<ReputationProfile> ReputationProfiles => Set<ReputationProfile>();
+    public DbSet<Review> Reviews => Set<Review>();
 
-    // // Notifications
-    // public DbSet<Notification> Notifications => Set<Notification>();
+    // Notifications
+    public DbSet<Notification> Notifications => Set<Notification>();
 
-    // // AI
-    // public DbSet<AiAssessment> AiAssessments => Set<AiAssessment>();
-    // public DbSet<AiFeedback> AiFeedbacks => Set<AiFeedback>();
-    // public DbSet<AiPromptVersion> AiPromptVersions => Set<AiPromptVersion>();
-    // public DbSet<VectorDocument> VectorDocuments => Set<VectorDocument>();
+    // AI
+    public DbSet<AiAssessment> AiAssessments => Set<AiAssessment>();
+    public DbSet<AiFeedback> AiFeedbacks => Set<AiFeedback>();
+    public DbSet<AiPromptVersion> AiPromptVersions => Set<AiPromptVersion>();
+    public DbSet<VectorDocument> VectorDocuments => Set<VectorDocument>();
 
     // Public
     public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
@@ -72,6 +73,9 @@ public class NaitrustDbContext : DbContext
     public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<ReportedConcern> ReportedConcerns => Set<ReportedConcern>();
+
+    // Roles
+    public DbSet<NaitrustRoleClaim> NaitrustRoleClaims => Set<NaitrustRoleClaim>();
 
     // Infrastructure
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -84,26 +88,22 @@ public class NaitrustDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BaseEntity).Assembly);
 
-        // // Soft-delete query filters
-        // modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
-        // modelBuilder.Entity<Business>().HasQueryFilter(e => !e.IsDeleted);
-        // modelBuilder.Entity<Transaction>().HasQueryFilter(e => !e.IsDeleted);
-        // modelBuilder.Entity<VirtualAccount>().HasQueryFilter(e => !e.IsDeleted);
-        // modelBuilder.Entity<Dispute>().HasQueryFilter(e => !e.IsDeleted);
+        // Soft-delete query filters
+        modelBuilder.Entity<NaitrustUser>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Business>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Transaction>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<VirtualAccount>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Dispute>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Party>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Notification>().HasQueryFilter(e => !e.IsDeleted);
 
-        // // Concurrency tokens on financial/critical entities
-        // modelBuilder.Entity<Transaction>().Property<uint>("xmin").IsRowVersion();
-        // modelBuilder.Entity<LedgerEntry>().Property<uint>("xmin").IsRowVersion();
-        // modelBuilder.Entity<VirtualAccount>().Property<uint>("xmin").IsRowVersion();
-        // modelBuilder.Entity<ReleaseRequest>().Property<uint>("xmin").IsRowVersion();
+        modelBuilder.Entity<NaitrustRoleClaim>().ToTable("RoleClaims");
 
-        // AuditLog column constraints
-        modelBuilder.Entity<AuditLog>(b =>
-        {
-            b.Property(a => a.EntityType).HasMaxLength(128);
-            b.Property(a => a.Action).HasMaxLength(32);
-            b.Property(a => a.IpAddress).HasMaxLength(64);
-        });
+        // Concurrency tokens on financial/critical entities
+        modelBuilder.Entity<Transaction>().Property<uint>("xmin").IsRowVersion();
+        modelBuilder.Entity<LedgerEntry>().Property<uint>("xmin").IsRowVersion();
+        modelBuilder.Entity<VirtualAccount>().Property<uint>("xmin").IsRowVersion();
+        modelBuilder.Entity<ReleaseRequest>().Property<uint>("xmin").IsRowVersion();
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -122,7 +122,25 @@ public class NaitrustDbContext : DbContext
                     entry.Entity.CreatedAt = DateTime.UtcNow;
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
                     if (entry.Entity.Id == Guid.Empty)
+                    {
                         entry.Entity.Id = Guid.NewGuid();
+                    }
+
+                    break;
+                case EntityState.Modified:
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    break;
+            }
+        }
+
+        // Auto-set timestamps on NaitrustUser (not a BaseEntity)
+        foreach (var entry in ChangeTracker.Entries<NaitrustUser>())
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
                     break;
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
@@ -157,7 +175,9 @@ public class NaitrustDbContext : DbContext
         foreach (var entry in ChangeTracker.Entries())
         {
             if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+            {
                 continue;
+            }
 
             var auditEntry = new AuditEntry(entry)
             {

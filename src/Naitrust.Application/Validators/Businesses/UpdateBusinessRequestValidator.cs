@@ -7,6 +7,9 @@ public class UpdateBusinessRequestValidator : AbstractValidator<UpdateBusinessRe
 {
     public UpdateBusinessRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Name).MaximumLength(200);
+        RuleFor(x => x.Address).MaximumLength(500);
+        RuleFor(x => x.State).MaximumLength(100);
+        RuleFor(x => x.TaxId).MaximumLength(50);
     }
 }

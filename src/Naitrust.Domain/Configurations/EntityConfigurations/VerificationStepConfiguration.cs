@@ -8,6 +8,15 @@ public class VerificationStepConfiguration : IEntityTypeConfiguration<Verificati
 {
     public void Configure(EntityTypeBuilder<VerificationStep> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("VerificationSteps");
+
+        builder.Property(x => x.Provider).HasMaxLength(100);
+
+        builder.Property(x => x.Step).HasConversion<string>();
+        builder.Property(x => x.Status).HasConversion<string>();
+
+        builder.HasIndex(x => new { x.VerificationRequestId, x.Step }).IsUnique();
+
+        builder.HasOne<VerificationRequest>().WithMany().HasForeignKey(x => x.VerificationRequestId).OnDelete(DeleteBehavior.Cascade);
     }
 }

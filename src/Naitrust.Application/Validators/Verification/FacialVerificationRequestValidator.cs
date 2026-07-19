@@ -7,6 +7,7 @@ public class FacialVerificationRequestValidator : AbstractValidator<FacialVerifi
 {
     public FacialVerificationRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.IdType).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.IdNumber).NotEmpty().MaximumLength(50);
     }
 }

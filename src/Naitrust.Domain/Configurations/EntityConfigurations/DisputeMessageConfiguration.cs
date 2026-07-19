@@ -8,6 +8,11 @@ public class DisputeMessageConfiguration : IEntityTypeConfiguration<DisputeMessa
 {
     public void Configure(EntityTypeBuilder<DisputeMessage> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("DisputeMessages");
+
+        builder.HasIndex(x => x.DisputeId);
+
+        builder.HasOne<Dispute>().WithMany().HasForeignKey(x => x.DisputeId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.SenderUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

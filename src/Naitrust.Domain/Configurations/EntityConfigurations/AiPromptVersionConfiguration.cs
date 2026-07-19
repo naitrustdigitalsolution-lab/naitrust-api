@@ -8,6 +8,12 @@ public class AiPromptVersionConfiguration : IEntityTypeConfiguration<AiPromptVer
 {
     public void Configure(EntityTypeBuilder<AiPromptVersion> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("AiPromptVersions");
+
+        builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+
+        builder.Property(x => x.Status).HasConversion<string>();
+
+        builder.HasIndex(x => new { x.Name, x.Version }).IsUnique();
     }
 }

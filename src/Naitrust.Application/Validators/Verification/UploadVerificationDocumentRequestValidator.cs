@@ -7,6 +7,6 @@ public class UploadVerificationDocumentRequestValidator : AbstractValidator<Uplo
 {
     public UploadVerificationDocumentRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.DocumentType).NotEmpty().MaximumLength(50);
     }
 }

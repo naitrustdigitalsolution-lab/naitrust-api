@@ -7,6 +7,6 @@ public class VerifyEmailRequestValidator : AbstractValidator<VerifyEmailRequest>
 {
     public VerifyEmailRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Token).NotEmpty();
     }
 }

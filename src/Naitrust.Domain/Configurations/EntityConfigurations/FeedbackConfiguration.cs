@@ -8,6 +8,8 @@ public class FeedbackConfiguration : IEntityTypeConfiguration<Feedback>
 {
     public void Configure(EntityTypeBuilder<Feedback> builder)
     {
+        builder.ToTable("Feedbacks");
+
         builder.Property(x => x.Name).HasMaxLength(200);
         builder.Property(x => x.Email).HasMaxLength(320);
         builder.Property(x => x.Message).HasMaxLength(5000).IsRequired();

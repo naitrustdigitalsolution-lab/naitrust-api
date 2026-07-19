@@ -8,6 +8,15 @@ public class OwnershipCheckConfiguration : IEntityTypeConfiguration<OwnershipChe
 {
     public void Configure(EntityTypeBuilder<OwnershipCheck> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("OwnershipChecks");
+
+        builder.Property(x => x.Method).HasConversion<string>();
+        builder.Property(x => x.Status).HasConversion<string>();
+
+        builder.HasIndex(x => new { x.VerificationRequestId, x.BusinessId }).IsUnique();
+
+        builder.HasOne<VerificationRequest>().WithMany().HasForeignKey(x => x.VerificationRequestId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -7,6 +7,7 @@ public class ResolveDisputeRequestValidator : AbstractValidator<ResolveDisputeRe
 {
     public ResolveDisputeRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Resolution).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.Reason).MaximumLength(2000);
     }
 }

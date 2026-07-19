@@ -8,6 +8,14 @@ public class MilestoneConfiguration : IEntityTypeConfiguration<Milestone>
 {
     public void Configure(EntityTypeBuilder<Milestone> builder)
     {
-        // TODO: Configure entity
+        builder.ToTable("Milestones");
+
+        builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+
+        builder.Property(x => x.Status).HasConversion<string>();
+
+        builder.HasIndex(x => x.TransactionId);
+
+        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Cascade);
     }
 }

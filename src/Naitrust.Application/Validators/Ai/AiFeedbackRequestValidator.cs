@@ -7,6 +7,8 @@ public class AiFeedbackRequestValidator : AbstractValidator<AiFeedbackRequest>
 {
     public AiFeedbackRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.AssessmentId).NotEmpty();
+        RuleFor(x => x.FeedbackType).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.Notes).MaximumLength(2000);
     }
 }

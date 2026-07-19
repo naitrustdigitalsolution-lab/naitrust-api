@@ -6,7 +6,7 @@ public record VirtualAccountResponse(
     string? AccountName,
     string? BankName,
     string Status,
-    long AmountExpectedMinor,
+    string Type,
     long AmountReceivedMinor,
     string Currency,
     DateTime? ExpiresAt);

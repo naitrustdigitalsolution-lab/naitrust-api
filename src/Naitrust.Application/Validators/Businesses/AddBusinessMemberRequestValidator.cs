@@ -7,6 +7,7 @@ public class AddBusinessMemberRequestValidator : AbstractValidator<AddBusinessMe
 {
     public AddBusinessMemberRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.UserId).NotEmpty();
+        RuleFor(x => x.Role).NotEmpty().MaximumLength(50);
     }
 }

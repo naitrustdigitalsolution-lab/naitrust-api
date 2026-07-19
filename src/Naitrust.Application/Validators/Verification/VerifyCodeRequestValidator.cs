@@ -7,6 +7,6 @@ public class VerifyCodeRequestValidator : AbstractValidator<VerifyCodeRequest>
 {
     public VerifyCodeRequestValidator()
     {
-        // TODO: Add validation rules
+        RuleFor(x => x.Code).NotEmpty().MaximumLength(10);
     }
 }
