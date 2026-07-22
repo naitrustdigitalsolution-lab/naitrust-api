@@ -30,6 +30,13 @@ public class PublicFormService : IPublicFormService
             Email = request.Email.ToLowerInvariant(),
             Phone = request.Phone,
             Source = request.Source,
+            BusinessName = request.BusinessName,
+            UserType = request.UserType,
+            TransactionRange = request.TransactionRange,
+            TransactionNeed = request.TransactionNeed,
+            Expectations = request.Expectations,
+            Consent = request.Consent,
+            SubmittedAt = request.SubmittedAt ?? DateTime.UtcNow,
             IsActive = true
         };
 
