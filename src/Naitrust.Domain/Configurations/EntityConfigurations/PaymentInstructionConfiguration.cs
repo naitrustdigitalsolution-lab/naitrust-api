@@ -21,7 +21,7 @@ public class PaymentInstructionConfiguration : IEntityTypeConfiguration<PaymentI
         builder.HasIndex(x => x.IdempotencyKey).IsUnique();
         builder.HasIndex(x => x.TransactionId);
 
-        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Deal>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<VirtualAccount>().WithMany().HasForeignKey(x => x.VirtualAccountId).OnDelete(DeleteBehavior.Restrict);
     }
 }
