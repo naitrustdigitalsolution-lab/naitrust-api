@@ -22,70 +22,43 @@ public class DisputesController : ControllerBase
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     /// <summary>
-    /// Open a dispute against a transaction
+    /// Get the dispute for a transaction (singular)
+    /// Frontend: GET /transactions/{dealId}/dispute
     /// </summary>
-    [HttpPost("transactions/{id:guid}/disputes")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
-    public async Task<IActionResult> OpenAsync(Guid id, [FromBody] OpenDisputeRequest request)
-    {
-        var response = await _disputeService.OpenDisputeAsync(GetUserId(), request);
-        return StatusCode((int)response.StatusCode, response);
-    }
-
-    /// <summary>
-    /// List disputes for a transaction
-    /// </summary>
-    [HttpGet("transactions/{id:guid}/disputes")]
+    [HttpGet("transactions/{txnId:guid}/dispute")]
     [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
-    public async Task<IActionResult> ListByTransactionAsync(Guid id)
+    public async Task<IActionResult> GetByTransactionAsync(Guid txnId)
     {
-        var response = await _disputeService.ListDisputesByTransactionAsync(id);
+        var response = await _disputeService.GetByTransactionAsync(txnId, GetUserId());
         return StatusCode((int)response.StatusCode, response);
     }
 
     /// <summary>
-    /// Get a dispute by ID
+    /// Open a dispute on a transaction
+    /// Frontend: POST /transactions/{dealId}/dispute  body: {reason, description}
     /// </summary>
-    [HttpGet("disputes/{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
-    public async Task<IActionResult> GetByIdAsync(Guid id)
-    {
-        var response = await _disputeService.GetDisputeAsync(id);
-        return StatusCode((int)response.StatusCode, response);
-    }
-
-    /// <summary>
-    /// Add a message to a dispute
-    /// </summary>
-    [HttpPost("disputes/{id:guid}/messages")]
+    [HttpPost("transactions/{txnId:guid}/dispute")]
     [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
-    public async Task<IActionResult> AddMessageAsync(Guid id, [FromBody] AddDisputeMessageRequest request)
+    public async Task<IActionResult> OpenAsync(Guid txnId, [FromBody] OpenDisputeRequest request)
     {
-        var response = await _disputeService.AddMessageAsync(id, GetUserId(), request);
+        var response = await _disputeService.OpenDisputeAsync(txnId, GetUserId(), request);
         return StatusCode((int)response.StatusCode, response);
     }
 
     /// <summary>
-    /// Add evidence to a dispute
+    /// Add a message to a dispute thread
+    /// Frontend: POST /transactions/{dealId}/dispute/messages  body: {body}
     /// </summary>
-    [HttpPost("disputes/{id:guid}/evidence")]
+    [HttpPost("transactions/{txnId:guid}/dispute/messages")]
     [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
-    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
-    public async Task<IActionResult> AddEvidenceAsync(Guid id, [FromBody] AddDisputeEvidenceRequest request)
+    public async Task<IActionResult> AddMessageAsync(Guid txnId, [FromBody] AddDisputeMessageRequest request)
     {
-        var response = await _disputeService.AddEvidenceAsync(id, GetUserId(), request);
+        var response = await _disputeService.AddMessageToTransactionDisputeAsync(txnId, GetUserId(), request);
         return StatusCode((int)response.StatusCode, response);
     }
 }

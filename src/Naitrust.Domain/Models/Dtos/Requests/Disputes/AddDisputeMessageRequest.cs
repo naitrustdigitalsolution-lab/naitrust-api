@@ -1,3 +1,6 @@
 namespace Naitrust.Domain.Models.Dtos.Requests.Disputes;
 
-public record AddDisputeMessageRequest(string Message);
+/// <summary>
+/// Frontend sends {body} for dispute messages.
+/// </summary>
+public record AddDisputeMessageRequest(string Body);

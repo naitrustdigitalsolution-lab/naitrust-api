@@ -5,7 +5,7 @@ namespace Naitrust.Domain.Models.Entities;
 
 public class Dispute : BaseEntity
 {
-    public Guid TransactionId { get; set; }
+    public Guid DealId { get; set; }
     public Guid OpenedByUserId { get; set; }
     public DisputeStatus Status { get; set; }
     public string Reason { get; set; } = default!;

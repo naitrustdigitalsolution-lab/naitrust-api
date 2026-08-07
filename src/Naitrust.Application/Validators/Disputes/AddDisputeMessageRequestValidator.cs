@@ -7,6 +7,6 @@ public class AddDisputeMessageRequestValidator : AbstractValidator<AddDisputeMes
 {
     public AddDisputeMessageRequestValidator()
     {
-        RuleFor(x => x.Message).NotEmpty().MaximumLength(5000);
+        RuleFor(x => x.Body).NotEmpty().MaximumLength(5000);
     }
 }

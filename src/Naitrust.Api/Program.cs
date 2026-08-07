@@ -7,9 +7,12 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway sets PORT env var
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+// Railway sets PORT env var — only override URLs when deployed
+var port = Environment.GetEnvironmentVariable("PORT");
+if (port is not null)
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
 
 
 

@@ -33,13 +33,18 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
     public DbSet<OwnershipCheck> OwnershipChecks => Set<OwnershipCheck>();
     public DbSet<VerificationProviderEvent> VerificationProviderEvents => Set<VerificationProviderEvent>();
 
-    // Transactions
-    public DbSet<Transaction> Transactions => Set<Transaction>();
+    // Invitations
+    public DbSet<DealInvitation> DealInvitations => Set<DealInvitation>();
+
+    // Deals
+    public DbSet<Deal> Deals => Set<Deal>();
     public DbSet<TransactionType> TransactionTypes => Set<TransactionType>();
-    public DbSet<TransactionParty> TransactionParties => Set<TransactionParty>();
+    public DbSet<DealParty> DealParties => Set<DealParty>();
     public DbSet<Agreement> Agreements => Set<Agreement>();
     public DbSet<Milestone> Milestones => Set<Milestone>();
     public DbSet<EvidenceFile> EvidenceFiles => Set<EvidenceFile>();
+    public DbSet<DealMessage> DealMessages => Set<DealMessage>();
+    public DbSet<DealTermination> DealTerminations => Set<DealTermination>();
 
     // Payments
     public DbSet<VirtualAccount> VirtualAccounts => Set<VirtualAccount>();
@@ -53,6 +58,10 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
     public DbSet<Dispute> Disputes => Set<Dispute>();
     public DbSet<DisputeMessage> DisputeMessages => Set<DisputeMessage>();
     public DbSet<DisputeEvidence> DisputeEvidence => Set<DisputeEvidence>();
+
+    // Negotiations
+    public DbSet<Negotiation> Negotiations => Set<Negotiation>();
+    public DbSet<NegotiationProposal> NegotiationProposals => Set<NegotiationProposal>();
 
     // Reputation
     public DbSet<ReputationProfile> ReputationProfiles => Set<ReputationProfile>();
@@ -91,7 +100,7 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
         // Soft-delete query filters
         modelBuilder.Entity<NaitrustUser>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Business>().HasQueryFilter(e => !e.IsDeleted);
-        modelBuilder.Entity<Transaction>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Deal>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<VirtualAccount>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Dispute>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Party>().HasQueryFilter(e => !e.IsDeleted);
@@ -100,7 +109,7 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
         modelBuilder.Entity<NaitrustRoleClaim>().ToTable("RoleClaims");
 
         // Concurrency tokens on financial/critical entities
-        modelBuilder.Entity<Transaction>().Property<uint>("xmin").IsRowVersion();
+        modelBuilder.Entity<Deal>().Property<uint>("xmin").IsRowVersion();
         modelBuilder.Entity<LedgerEntry>().Property<uint>("xmin").IsRowVersion();
         modelBuilder.Entity<VirtualAccount>().Property<uint>("xmin").IsRowVersion();
         modelBuilder.Entity<ReleaseRequest>().Property<uint>("xmin").IsRowVersion();

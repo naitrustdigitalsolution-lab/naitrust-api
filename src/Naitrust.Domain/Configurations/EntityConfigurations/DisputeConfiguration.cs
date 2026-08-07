@@ -15,10 +15,12 @@ public class DisputeConfiguration : IEntityTypeConfiguration<Dispute>
         builder.Property(x => x.Status).HasConversion<string>();
         builder.Property(x => x.Resolution).HasConversion<string>();
 
-        builder.HasIndex(x => x.TransactionId);
+        builder.Property(x => x.DealId).HasColumnName("TransactionId");
+
+        builder.HasIndex(x => x.DealId);
         builder.HasIndex(x => x.OpenedByUserId);
 
-        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Deal>().WithMany().HasForeignKey(x => x.DealId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.OpenedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.AdminOwnerId).OnDelete(DeleteBehavior.SetNull);
     }

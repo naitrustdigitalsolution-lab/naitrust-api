@@ -19,7 +19,7 @@ public class EvidenceFileConfiguration : IEntityTypeConfiguration<EvidenceFile>
         builder.HasIndex(x => x.TransactionId);
         builder.HasIndex(x => x.MilestoneId);
 
-        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Deal>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Milestone>().WithMany().HasForeignKey(x => x.MilestoneId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.UploadedByUserId).OnDelete(DeleteBehavior.Restrict);
     }

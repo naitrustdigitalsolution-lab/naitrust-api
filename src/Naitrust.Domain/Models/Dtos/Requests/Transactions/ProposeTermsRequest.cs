@@ -8,4 +8,8 @@ public record ProposeTermsRequest(
     string? ProofRequirements,
     string? DisputeRules,
     DateTime? DeliveryDueAt,
-    int? AutoConfirmWindowHours);
+    int? AutoConfirmWindowHours,
+    List<AgreementSectionInput>? Sections,
+    bool? GeneratedByAi);
+
+public record AgreementSectionInput(string Heading, string Body);

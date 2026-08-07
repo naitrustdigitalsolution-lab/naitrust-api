@@ -27,7 +27,7 @@ public class AdminController : ControllerBase
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ListTransactionsAsync([FromQuery] PaginationRequest pagination)
     {
-        var response = await _adminService.GetTransactionsAsync(pagination);
+        var response = await _adminService.GetDealsAsync(pagination);
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -41,7 +41,7 @@ public class AdminController : ControllerBase
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetTransactionAsync(Guid id)
     {
-        var response = await _adminService.GetTransactionAsync(id);
+        var response = await _adminService.GetDealAsync(id);
         return StatusCode((int)response.StatusCode, response);
     }
 

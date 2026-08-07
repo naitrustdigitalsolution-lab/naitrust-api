@@ -4,14 +4,29 @@ public record BusinessResponse(
     Guid Id,
     Guid OwnerUserId,
     string Name,
-    string Type,
-    string? RegistrationNumber,
+    string? Slug,
+    string? NtId,
+    string Category,
+    string? Description,
+    string? OwnerName,
+    string? Email,
+    string? Phone,
+    string? Website,
+    string? RcNumber,
     string? TaxId,
     string Country,
     string? State,
+    string? City,
     string? Address,
+    List<SocialHandleDto>? SocialHandles,
+    PaymentAccountDto? PaymentAccount,
     string VerificationStatus,
+    bool Verified,
     string? RiskLevel,
     DateTime? BusinessVerifiedAt,
     DateTime? OwnershipVerifiedAt,
     DateTime CreatedAt);
+
+public record SocialHandleDto(string Platform, string Handle);
+
+public record PaymentAccountDto(string BankName, string AccountNumber, string AccountName);

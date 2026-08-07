@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Disputes;
@@ -11,198 +12,166 @@ namespace Naitrust.Application.Services.Implementations.Disputes;
 public class DisputeService : IDisputeService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly UserManager<NaitrustUser> _userManager;
 
-    public DisputeService(IUnitOfWork unitOfWork)
+    public DisputeService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager)
     {
         _unitOfWork = unitOfWork;
+        _userManager = userManager;
     }
 
-    public async Task<NaitrustResponse<DisputeResponse>> OpenDisputeAsync(Guid userId, OpenDisputeRequest request, CancellationToken ct = default)
+    public async Task<NaitrustResponse<DisputeResponse?>> GetByTransactionAsync(Guid transactionId, Guid userId, CancellationToken ct = default)
     {
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
-        var transaction = await transactionRepo.GetByIdAsync(request.TransactionId);
+        var repo = _unitOfWork.GetRepository<Dispute>();
+        var dispute = await repo.GetSingleByAsync(d => d.DealId == transactionId && !d.IsDeleted);
 
-        if (transaction is null || transaction.IsDeleted)
+        if (dispute is null)
         {
-            return NaitrustResponse<DisputeResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<DisputeResponse?>.Success("No dispute found.", null);
+        }
+
+        var messages = await GetDisputeMessagesAsync(dispute.Id, userId);
+        return NaitrustResponse<DisputeResponse?>.Success("Dispute retrieved.", await MapToResponse(dispute, messages, userId));
+    }
+
+    public async Task<NaitrustResponse<DisputeResponse>> OpenDisputeAsync(Guid transactionId, Guid userId, OpenDisputeRequest request, CancellationToken ct = default)
+    {
+        var dealRepo = _unitOfWork.GetRepository<Deal>();
+        var deal = await dealRepo.GetByIdAsync(transactionId);
+
+        if (deal is null || deal.IsDeleted)
+        {
+            return NaitrustResponse<DisputeResponse>.NotFound("Deal not found.");
         }
 
         var repo = _unitOfWork.GetRepository<Dispute>();
+        var existing = await repo.GetSingleByAsync(d => d.DealId == transactionId && !d.IsDeleted
+            && (d.Status == DisputeStatus.Opened || d.Status == DisputeStatus.UnderReview));
+
+        if (existing is not null)
+        {
+            return NaitrustResponse<DisputeResponse>.BadRequest("A dispute is already open for this transaction.");
+        }
 
         var dispute = new Dispute
         {
             Id = Guid.NewGuid(),
-            TransactionId = request.TransactionId,
+            DealId = transactionId,
             OpenedByUserId = userId,
-            Status = DisputeStatus.Opened,
+            Status = DisputeStatus.UnderReview,
             Reason = request.Reason,
             Description = request.Description,
             IsActive = true
         };
 
         await repo.AddAsync(dispute);
+
+        // Auto-add initial support message
+        var msgRepo = _unitOfWork.GetRepository<DisputeMessage>();
+        var autoMsg = new DisputeMessage
+        {
+            Id = Guid.NewGuid(),
+            DisputeId = dispute.Id,
+            SenderUserId = Guid.Empty, // System
+            Message = "Your dispute has been received. Add any evidence and we will review it shortly.",
+            CreatedAt = DateTime.UtcNow
+        };
+        await msgRepo.AddAsync(autoMsg);
+
         await _unitOfWork.SaveChangesAsync();
 
-        return NaitrustResponse<DisputeResponse>.Created(
-            "Dispute opened successfully.",
-            MapToResponse(dispute, null));
+        var messages = await GetDisputeMessagesAsync(dispute.Id, userId);
+        return NaitrustResponse<DisputeResponse>.Created("Dispute opened.", await MapToResponse(dispute, messages, userId));
     }
 
-    public async Task<NaitrustResponse<DisputeResponse>> GetDisputeAsync(Guid disputeId, CancellationToken ct = default)
+    public async Task<NaitrustResponse<DisputeResponse>> AddMessageToTransactionDisputeAsync(Guid transactionId, Guid userId, AddDisputeMessageRequest request, CancellationToken ct = default)
     {
         var repo = _unitOfWork.GetRepository<Dispute>();
-        var dispute = await repo.GetByIdAsync(disputeId);
+        var dispute = await repo.GetSingleByAsync(d => d.DealId == transactionId && !d.IsDeleted);
 
-        if (dispute is null || dispute.IsDeleted)
+        if (dispute is null)
         {
-            return NaitrustResponse<DisputeResponse>.NotFound("Dispute not found.");
+            return NaitrustResponse<DisputeResponse>.NotFound("No dispute found for this transaction.");
         }
 
-        var messageRepo = _unitOfWork.GetRepository<DisputeMessage>();
-        var messages = await messageRepo.GetAllDataAsync(
-            m => m.DisputeId == disputeId,
-            orderBy: q => q.OrderBy(m => m.CreatedAt));
-
-        var messageResponses = messages.Select(m => new DisputeMessageResponse(
-            m.Id,
-            m.SenderUserId,
-            m.Message,
-            m.CreatedAt)).ToList();
-
-        return NaitrustResponse<DisputeResponse>.Success(
-            "Dispute retrieved successfully.",
-            MapToResponse(dispute, messageResponses));
-    }
-
-    public async Task<NaitrustResponse<List<DisputeResponse>>> ListDisputesByTransactionAsync(Guid transactionId, CancellationToken ct = default)
-    {
-        var repo = _unitOfWork.GetRepository<Dispute>();
-        var disputes = await repo.GetAllDataAsync(
-            d => d.TransactionId == transactionId && !d.IsDeleted,
-            orderBy: q => q.OrderByDescending(d => d.CreatedAt));
-
-        var responses = disputes.Select(d => MapToResponse(d, null)).ToList();
-
-        return NaitrustResponse<List<DisputeResponse>>.Success(
-            "Disputes retrieved successfully.", responses);
-    }
-
-    public async Task<NaitrustResponse<DisputeMessageResponse>> AddMessageAsync(Guid disputeId, Guid userId, AddDisputeMessageRequest request, CancellationToken ct = default)
-    {
-        var disputeRepo = _unitOfWork.GetRepository<Dispute>();
-        var dispute = await disputeRepo.GetByIdAsync(disputeId);
-
-        if (dispute is null || dispute.IsDeleted)
-        {
-            return NaitrustResponse<DisputeMessageResponse>.NotFound("Dispute not found.");
-        }
-
-        var messageRepo = _unitOfWork.GetRepository<DisputeMessage>();
-
+        var msgRepo = _unitOfWork.GetRepository<DisputeMessage>();
         var message = new DisputeMessage
         {
             Id = Guid.NewGuid(),
-            DisputeId = disputeId,
+            DisputeId = dispute.Id,
             SenderUserId = userId,
-            Message = request.Message,
+            Message = request.Body,
             CreatedAt = DateTime.UtcNow
         };
 
-        await messageRepo.AddAsync(message);
+        await msgRepo.AddAsync(message);
         await _unitOfWork.SaveChangesAsync();
 
-        var response = new DisputeMessageResponse(
-            message.Id,
-            message.SenderUserId,
-            message.Message,
-            message.CreatedAt);
-
-        return NaitrustResponse<DisputeMessageResponse>.Created("Message added successfully.", response);
+        var messages = await GetDisputeMessagesAsync(dispute.Id, userId);
+        return NaitrustResponse<DisputeResponse>.Created("Message added.", await MapToResponse(dispute, messages, userId));
     }
 
-    public async Task<NaitrustResponse<DisputeEvidenceResponse>> AddEvidenceAsync(Guid disputeId, Guid userId, AddDisputeEvidenceRequest request, CancellationToken ct = default)
+    private async Task<List<DisputeMessageDto>> GetDisputeMessagesAsync(Guid disputeId, Guid userId)
     {
-        var disputeRepo = _unitOfWork.GetRepository<Dispute>();
-        var dispute = await disputeRepo.GetByIdAsync(disputeId);
+        var msgRepo = _unitOfWork.GetRepository<DisputeMessage>();
+        var messages = await msgRepo.GetAllDataAsync(m => m.DisputeId == disputeId);
+        var ordered = messages.OrderBy(m => m.CreatedAt).ToList();
 
-        if (dispute is null || dispute.IsDeleted)
+        var result = new List<DisputeMessageDto>();
+        foreach (var m in ordered)
         {
-            return NaitrustResponse<DisputeEvidenceResponse>.NotFound("Dispute not found.");
+            string byName;
+            if (m.SenderUserId == Guid.Empty)
+            {
+                byName = "Naitrust Support";
+            }
+            else if (m.SenderUserId == userId)
+            {
+                byName = "You";
+            }
+            else
+            {
+                var user = await _userManager.FindByIdAsync(m.SenderUserId.ToString());
+                byName = user is not null ? $"{user.FirstName} {user.LastName}".Trim() : "Unknown";
+            }
+
+            result.Add(new DisputeMessageDto(m.Id, byName, m.SenderUserId == userId, m.Message, m.CreatedAt));
         }
 
-        var evidenceRepo = _unitOfWork.GetRepository<DisputeEvidence>();
+        return result;
+    }
 
-        var evidence = new DisputeEvidence
+    private async Task<DisputeResponse> MapToResponse(Dispute dispute, List<DisputeMessageDto> messages, Guid userId)
+    {
+        string openedByName;
+        if (dispute.OpenedByUserId == userId)
         {
-            Id = Guid.NewGuid(),
-            DisputeId = disputeId,
-            EvidenceFileId = request.EvidenceFileId,
-            SubmittedByUserId = userId,
-            CreatedAt = DateTime.UtcNow
+            openedByName = "You";
+        }
+        else
+        {
+            var user = await _userManager.FindByIdAsync(dispute.OpenedByUserId.ToString());
+            openedByName = user is not null ? $"{user.FirstName} {user.LastName}".Trim() : "Unknown";
+        }
+
+        // Frontend status: 'open' | 'under_review' | 'resolved_release' | 'resolved_refund'
+        var status = dispute.Status switch
+        {
+            DisputeStatus.Opened => "open",
+            DisputeStatus.UnderReview => "under_review",
+            DisputeStatus.EvidenceRequested => "under_review",
+            DisputeStatus.ResolvedRelease => "resolved_release",
+            DisputeStatus.ResolvedRefund => "resolved_refund",
+            _ => dispute.Status.ToString().ToLowerInvariant()
         };
 
-        await evidenceRepo.AddAsync(evidence);
-        await _unitOfWork.SaveChangesAsync();
-
-        var response = new DisputeEvidenceResponse(
-            evidence.Id,
-            evidence.DisputeId,
-            evidence.SubmittedByUserId,
-            Description: null,
-            FileUrl: null,
-            evidence.CreatedAt);
-
-        return NaitrustResponse<DisputeEvidenceResponse>.Created("Evidence added successfully.", response);
-    }
-
-    public async Task<NaitrustResponse<DisputeResponse>> ResolveDisputeAsync(Guid disputeId, Guid userId, ResolveDisputeRequest request, CancellationToken ct = default)
-    {
-        var repo = _unitOfWork.GetRepository<Dispute>();
-        var dispute = await repo.GetByIdAsync(disputeId);
-
-        if (dispute is null || dispute.IsDeleted)
-        {
-            return NaitrustResponse<DisputeResponse>.NotFound("Dispute not found.");
-        }
-
-        if (!Enum.TryParse<DisputeResolution>(request.Resolution, ignoreCase: true, out var resolution))
-        {
-            return NaitrustResponse<DisputeResponse>.BadRequest($"Invalid resolution: {request.Resolution}");
-        }
-
-        dispute.Resolution = resolution;
-        dispute.ResolvedAt = DateTime.UtcNow;
-        dispute.UpdatedAt = DateTime.UtcNow;
-
-        dispute.Status = resolution switch
-        {
-            DisputeResolution.Release => DisputeStatus.ResolvedRelease,
-            DisputeResolution.Refund => DisputeStatus.ResolvedRefund,
-            DisputeResolution.Split => DisputeStatus.ResolvedSplit,
-            DisputeResolution.Closed => DisputeStatus.Closed,
-            _ => DisputeStatus.Closed
-        };
-
-        await repo.UpdateAsync(dispute);
-        await _unitOfWork.SaveChangesAsync();
-
-        return NaitrustResponse<DisputeResponse>.Success(
-            "Dispute resolved successfully.",
-            MapToResponse(dispute, null));
-    }
-
-    private static DisputeResponse MapToResponse(Dispute dispute, List<DisputeMessageResponse>? messages)
-    {
         return new DisputeResponse(
-            dispute.Id,
-            dispute.TransactionId,
-            dispute.OpenedByUserId,
-            dispute.Status.ToString(),
+            dispute.DealId,
+            status,
             dispute.Reason,
-            dispute.Description,
-            dispute.Resolution?.ToString(),
-            dispute.ResolvedAt,
-            messages,
-            dispute.CreatedAt);
+            dispute.Description ?? "",
+            openedByName,
+            dispute.CreatedAt,
+            messages);
     }
 }

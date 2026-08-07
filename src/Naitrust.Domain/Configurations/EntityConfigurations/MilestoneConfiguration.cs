@@ -14,8 +14,10 @@ public class MilestoneConfiguration : IEntityTypeConfiguration<Milestone>
 
         builder.Property(x => x.Status).HasConversion<string>();
 
-        builder.HasIndex(x => x.TransactionId);
+        builder.Property(x => x.DealId).HasColumnName("TransactionId");
 
-        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => x.DealId);
+
+        builder.HasOne<Deal>().WithMany().HasForeignKey(x => x.DealId).OnDelete(DeleteBehavior.Cascade);
     }
 }

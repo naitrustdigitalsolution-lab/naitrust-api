@@ -89,12 +89,12 @@ public class PaymentService : IPaymentService
 
     public async Task<NaitrustResponse<PaymentStatusResponse>> GetPaymentStatusAsync(Guid transactionId, CancellationToken ct = default)
     {
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
-        var transaction = await transactionRepo.GetByIdAsync(transactionId);
+        var dealRepo = _unitOfWork.GetRepository<Deal>();
+        var deal = await dealRepo.GetByIdAsync(transactionId);
 
-        if (transaction is null || transaction.IsDeleted)
+        if (deal is null || deal.IsDeleted)
         {
-            return NaitrustResponse<PaymentStatusResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<PaymentStatusResponse>.NotFound("Deal not found.");
         }
 
         // Compute escrow balance from ledger
@@ -109,12 +109,12 @@ public class PaymentService : IPaymentService
             var totalDebit = entryList.Sum(e => e.DebitMinor);
             var totalCredit = entryList.Sum(e => e.CreditMinor);
             escrowBalance = totalDebit - totalCredit;
-            ledgerSummary = new LedgerSummaryDto(totalDebit, totalCredit, transaction.Currency);
+            ledgerSummary = new LedgerSummaryDto(totalDebit, totalCredit, deal.Currency);
         }
 
         var response = new PaymentStatusResponse(
             transactionId,
-            transaction.PaymentStatus.ToString(),
+            deal.PaymentStatus.ToString(),
             escrowBalance,
             ledgerSummary);
 
@@ -123,12 +123,12 @@ public class PaymentService : IPaymentService
 
     public async Task<NaitrustResponse<ReleaseRequestResponse>> RequestReleaseAsync(Guid transactionId, RequestReleaseRequest request, CancellationToken ct = default)
     {
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
-        var transaction = await transactionRepo.GetByIdAsync(transactionId);
+        var dealRepo2 = _unitOfWork.GetRepository<Deal>();
+        var deal2 = await dealRepo2.GetByIdAsync(transactionId);
 
-        if (transaction is null || transaction.IsDeleted)
+        if (deal2 is null || deal2.IsDeleted)
         {
-            return NaitrustResponse<ReleaseRequestResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<ReleaseRequestResponse>.NotFound("Deal not found.");
         }
 
         var repo = _unitOfWork.GetRepository<ReleaseRequest>();
@@ -137,7 +137,7 @@ public class PaymentService : IPaymentService
         {
             Id = Guid.NewGuid(),
             TransactionId = transactionId,
-            RequestedByUserId = transaction.CreatedByUserId,
+            RequestedByUserId = deal2.CreatedByUserId,
             Status = ReleaseRequestStatus.Requested,
             Reason = request.Reason,
             RequestedAt = DateTime.UtcNow,
@@ -152,7 +152,7 @@ public class PaymentService : IPaymentService
             releaseRequest.TransactionId,
             releaseRequest.RequestedByUserId,
             releaseRequest.Status.ToString(),
-            transaction.AmountMinor,
+            deal2.AmountMinor,
             releaseRequest.Reason,
             releaseRequest.CreatedAt);
 
@@ -187,12 +187,12 @@ public class PaymentService : IPaymentService
 
     public async Task<NaitrustResponse<ReconciliationStatusResponse>> GetReconciliationStatusAsync(Guid transactionId, CancellationToken ct = default)
     {
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
-        var transaction = await transactionRepo.GetByIdAsync(transactionId);
+        var dealRepo3 = _unitOfWork.GetRepository<Deal>();
+        var deal3 = await dealRepo3.GetByIdAsync(transactionId);
 
-        if (transaction is null || transaction.IsDeleted)
+        if (deal3 is null || deal3.IsDeleted)
         {
-            return NaitrustResponse<ReconciliationStatusResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<ReconciliationStatusResponse>.NotFound("Deal not found.");
         }
 
         var ledgerRepo = _unitOfWork.GetRepository<LedgerEntry>();

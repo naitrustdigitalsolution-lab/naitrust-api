@@ -48,6 +48,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Verify 2FA token after login
+    /// </summary>
+    [HttpPost("login/verify-2fa")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> Verify2FAAsync([FromBody] Verify2FARequest request)
+    {
+        var response = await _authService.Verify2FAAsync(request);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
     /// Log out and revoke all refresh tokens
     /// </summary>
     [HttpPost("logout")]
@@ -70,12 +82,54 @@ public class AuthController : ControllerBase
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetMeAsync()
     {
-        var response = await _authService.GetCurrentUserAsync(GetUserId());
+        var response = await _authService.GetProfileAsync(GetUserId());
         return StatusCode((int)response.StatusCode, response);
     }
 
     /// <summary>
-    /// Verify email address with a confirmation token
+    /// Get the current authenticated user's profile
+    /// </summary>
+    [HttpGet("profile")]
+    [Authorize]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> GetProfileAsync()
+    {
+        var response = await _authService.GetProfileAsync(GetUserId());
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Update the current authenticated user's profile
+    /// </summary>
+    [HttpPut("profile")]
+    [Authorize]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfileRequest request)
+    {
+        var response = await _authService.UpdateProfileAsync(GetUserId(), request);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Change the current user's password
+    /// </summary>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest request)
+    {
+        var response = await _authService.ChangePasswordAsync(GetUserId(), request);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Verify email address with an OTP
     /// </summary>
     [HttpPost("verify-email")]
     [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
@@ -87,7 +141,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Request a password reset email
+    /// Request a password reset OTP
     /// </summary>
     [HttpPost("forgot-password")]
     [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
@@ -95,6 +149,18 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordRequest request)
     {
         var response = await _authService.ForgotPasswordAsync(request);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Verify a password-reset OTP and receive a reset token
+    /// </summary>
+    [HttpPost("verify-otp")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> VerifyOtpAsync([FromBody] VerifyOtpRequest request)
+    {
+        var response = await _authService.VerifyOtpAsync(request);
         return StatusCode((int)response.StatusCode, response);
     }
 
@@ -108,6 +174,17 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordRequest request)
     {
         var response = await _authService.ResetPasswordAsync(request);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>
+    /// Resend email verification OTP
+    /// </summary>
+    [HttpPost("resend-verification-otp")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> ResendVerificationOtpAsync([FromBody] ResendVerificationOtpRequest request)
+    {
+        var response = await _authService.ResendVerificationOtpAsync(request);
         return StatusCode((int)response.StatusCode, response);
     }
 

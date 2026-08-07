@@ -48,7 +48,7 @@ public class NotificationsController : ControllerBase
     /// <summary>
     /// Mark all notifications as read
     /// </summary>
-    [HttpPost("read-all")]
+    [HttpPatch("read-all")]
     [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> MarkAllReadAsync()

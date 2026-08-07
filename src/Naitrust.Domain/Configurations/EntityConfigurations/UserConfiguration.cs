@@ -15,6 +15,13 @@ public class NaitrustUserConfiguration : IEntityTypeConfiguration<NaitrustUser>
         builder.Property(x => x.Email).HasMaxLength(320);
         builder.Property(x => x.PhoneNumber).HasMaxLength(20);
 
+        builder.Property(x => x.Bio).HasMaxLength(500);
+        builder.Property(x => x.Address).HasMaxLength(250);
+        builder.Property(x => x.City).HasMaxLength(100);
+        builder.Property(x => x.State).HasMaxLength(100);
+        builder.Property(x => x.Country).HasMaxLength(100);
+        builder.Property(x => x.Avatar).HasMaxLength(500);
+
         builder.Property(x => x.Status).HasConversion<string>();
 
         builder.HasIndex(x => x.Status);

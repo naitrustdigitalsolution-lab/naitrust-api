@@ -10,9 +10,13 @@ public class AgreementConfiguration : IEntityTypeConfiguration<Agreement>
     {
         builder.ToTable("Agreements");
 
-        builder.HasIndex(x => new { x.TransactionId, x.Version }).IsUnique();
+        builder.Property(x => x.SectionsJson).HasColumnType("text");
 
-        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Cascade);
+        builder.Property(x => x.DealId).HasColumnName("TransactionId");
+
+        builder.HasIndex(x => new { x.DealId, x.Version }).IsUnique();
+
+        builder.HasOne<Deal>().WithMany().HasForeignKey(x => x.DealId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }
