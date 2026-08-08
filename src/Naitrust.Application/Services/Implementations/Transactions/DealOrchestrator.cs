@@ -1,9 +1,12 @@
+using Naitrust.Application.ExternalServices;
+using Naitrust.Application.ExternalServices.Anchor;
 using Naitrust.Application.Services.Implementations.Invitations;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Transactions;
 using Naitrust.Domain.Models.Dtos.Responses.Transactions;
 using Naitrust.Domain.Models.Entities;
+using Naitrust.Domain.Models.Enums.Payments;
 using Naitrust.Domain.Models.Enums.Transactions;
 using Naitrust.Infrastructure.Data.Interfaces;
 
@@ -14,11 +17,16 @@ public class DealOrchestrator : IDealOrchestrator
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly INotificationService _notificationService;
+    private readonly AnchorPaymentPartner _anchor;
 
-    public DealOrchestrator(IUnitOfWork unitOfWork, INotificationService notificationService)
+    public DealOrchestrator(
+        IUnitOfWork unitOfWork,
+        INotificationService notificationService,
+        AnchorPaymentPartner anchor)
     {
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
+        _anchor = anchor;
     }
 
     public async Task<NaitrustResponse<DealResponse>> InvitePartyAsync(Guid dealId, Guid userId, InvitePartyRequest request, CancellationToken ct = default)
@@ -322,33 +330,119 @@ public class DealOrchestrator : IDealOrchestrator
         var deal = await dealRepo.GetByIdAsync(dealId);
 
         if (deal is null || deal.IsDeleted)
-        {
             return NaitrustResponse<DealResponse>.NotFound("Deal not found.");
-        }
 
         if (deal.Status != DealStatus.AwaitingFunding)
-        {
             return NaitrustResponse<DealResponse>.BadRequest("Deal must be in AwaitingFunding status to initiate funding.");
-        }
 
-        if (!await IsUserPartyToDeal(dealId, userId))
+        // Only the Buyer party may fund
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
+        var buyerParty = await partyRepo.GetSingleByAsync(
+            p => p.DealId == dealId && p.UserId == userId && p.PartyType == PartyType.Buyer && !p.IsDeleted);
+
+        if (buyerParty is null)
+            return NaitrustResponse<DealResponse>.Forbidden("Only the Buyer party can fund this deal.");
+
+        // Fetch buyer's Settlement subledger
+        var vaRepo = _unitOfWork.GetRepository<VirtualAccount>();
+        var buyerWallet = await vaRepo.GetSingleByAsync(
+            va => va.UserId == userId && va.Type == VirtualAccountType.Settlement && !va.IsDeleted);
+
+        if (buyerWallet is null || string.IsNullOrEmpty(buyerWallet.ProviderReference))
+            return NaitrustResponse<DealResponse>.BadRequest(
+                "Buyer does not have a wallet. Please complete KYC first.");
+
+        // Fetch platform escrow subledger
+        var platformEscrow = await vaRepo.GetSingleByAsync(
+            va => va.Type == VirtualAccountType.Platform && !va.IsDeleted);
+
+        if (platformEscrow is null || string.IsNullOrEmpty(platformEscrow.ProviderReference))
+            return NaitrustResponse<DealResponse>.BadRequest(
+                "Platform escrow account is not set up. Contact support.");
+
+        // Verify buyer has sufficient balance
+        var balanceResult = await _anchor.GetFundingStatusAsync(
+            new FundingStatusRequest(buyerWallet.ProviderReference), ct);
+
+        if (balanceResult.AmountReceivedMinor < deal.AmountMinor)
+            return NaitrustResponse<DealResponse>.BadRequest(
+                $"Insufficient wallet balance. Required: {deal.AmountMinor / 100m:N2} NGN, Available: {balanceResult.AmountReceivedMinor / 100m:N2} NGN.");
+
+        // Internal transfer: buyer subledger → platform escrow
+        var idempotencyKey = $"fund-{dealId}";
+        var transfer = await _anchor.InternalTransferAsync(
+            sourceSubAccountId: buyerWallet.ProviderReference,
+            destinationSubAccountId: platformEscrow.ProviderReference,
+            amountMinor: deal.AmountMinor,
+            currency: deal.Currency,
+            narration: $"Escrow funding for deal {deal.Reference}",
+            idempotencyKey: idempotencyKey,
+            ct: ct);
+
+        // Record payment instruction
+        var instrRepo = _unitOfWork.GetRepository<PaymentInstruction>();
+        var instruction = new PaymentInstruction
         {
-            return NaitrustResponse<DealResponse>.Forbidden("You are not a party to this deal.");
-        }
+            Id = Guid.NewGuid(),
+            TransactionId = dealId,
+            VirtualAccountId = buyerWallet.Id,
+            InstructionType = PaymentInstructionType.EscrowFunding,
+            Partner = PaymentPartnerId.Anchor,
+            IdempotencyKey = idempotencyKey,
+            Status = PaymentInstructionStatus.Confirmed,
+            PartnerReference = transfer.PartnerReference,
+            IsActive = true
+        };
+        await instrRepo.AddAsync(instruction);
 
-        // Stub: just transition the status
+        // Double-entry ledger: debit escrow (funds received), credit buyer wallet (funds left)
+        var ledgerRepo = _unitOfWork.GetRepository<LedgerEntry>();
+        var entryGroupId = Guid.NewGuid();
+        var now = DateTime.UtcNow;
+
+        await ledgerRepo.AddAsync(new LedgerEntry
+        {
+            Id = Guid.NewGuid(),
+            TransactionId = dealId,
+            EntryGroupId = entryGroupId,
+            EventType = LedgerEventType.FundingConfirmed,
+            Account = $"Escrow:{dealId}",
+            DebitMinor = deal.AmountMinor,
+            CreditMinor = 0,
+            Currency = deal.Currency,
+            Memo = $"Buyer escrow deposit – deal {deal.Reference}",
+            CreatedAt = now
+        });
+
+        await ledgerRepo.AddAsync(new LedgerEntry
+        {
+            Id = Guid.NewGuid(),
+            TransactionId = dealId,
+            EntryGroupId = entryGroupId,
+            EventType = LedgerEventType.FundingConfirmed,
+            Account = $"Buyer:{userId}",
+            DebitMinor = 0,
+            CreditMinor = deal.AmountMinor,
+            Currency = deal.Currency,
+            Memo = $"Buyer wallet debit – deal {deal.Reference}",
+            CreatedAt = now
+        });
+
+        // Advance deal state
         deal.Status = DealStatus.Funded;
-        deal.UpdatedAt = DateTime.UtcNow;
+        deal.PaymentStatus = PaymentStatus.PaymentConfirmedByPartner;
+        deal.UpdatedAt = now;
         await dealRepo.UpdateAsync(deal);
+
         await _unitOfWork.SaveChangesAsync();
 
         await _notificationService.SendNotificationAsync(
-            userId, "Funding Initiated",
-            $"Funding has been initiated for deal {deal.Reference}.",
+            userId, "Deal Funded",
+            $"Deal {deal.Reference} has been funded successfully. The funds are in escrow.",
             "DealUpdate", null, ct);
 
         return NaitrustResponse<DealResponse>.Success(
-            "Funding initiated successfully.",
+            "Deal funded successfully. Funds are held in escrow.",
             await BuildDealResponse(deal));
     }
 
@@ -393,33 +487,126 @@ public class DealOrchestrator : IDealOrchestrator
         var deal = await dealRepo.GetByIdAsync(dealId);
 
         if (deal is null || deal.IsDeleted)
-        {
             return NaitrustResponse<DealResponse>.NotFound("Deal not found.");
-        }
 
         if (deal.Status != DealStatus.InProgress)
-        {
             return NaitrustResponse<DealResponse>.BadRequest("Deal must be in InProgress status to confirm delivery.");
-        }
 
-        if (!await IsUserPartyToDeal(dealId, userId))
+        // Only the Buyer confirms delivery
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
+        var buyerParty = await partyRepo.GetSingleByAsync(
+            p => p.DealId == dealId && p.UserId == userId && p.PartyType == PartyType.Buyer && !p.IsDeleted);
+
+        if (buyerParty is null)
+            return NaitrustResponse<DealResponse>.Forbidden("Only the Buyer party can confirm delivery.");
+
+        // ── Release funds from escrow to seller ──────────────────────────────
+        if (deal.PaymentStatus == PaymentStatus.PaymentConfirmedByPartner)
         {
-            return NaitrustResponse<DealResponse>.Forbidden("You are not a party to this deal.");
+            // Find the seller party (non-buyer with a registered UserId)
+            var allParties = await partyRepo.GetAllDataAsync(p => p.DealId == dealId && !p.IsDeleted);
+            var sellerParty = allParties.FirstOrDefault(
+                p => p.UserId.HasValue && p.UserId != userId);
+
+            if (sellerParty?.UserId is null)
+                return NaitrustResponse<DealResponse>.BadRequest(
+                    "Cannot release funds: no registered seller party found on this deal.");
+
+            var vaRepo = _unitOfWork.GetRepository<VirtualAccount>();
+
+            var sellerWallet = await vaRepo.GetSingleByAsync(
+                va => va.UserId == sellerParty.UserId && va.Type == VirtualAccountType.Settlement && !va.IsDeleted);
+
+            if (sellerWallet is null || string.IsNullOrEmpty(sellerWallet.ProviderReference))
+                return NaitrustResponse<DealResponse>.BadRequest(
+                    "Cannot release funds: the seller has not completed KYC and does not have a wallet yet.");
+
+            var platformEscrow = await vaRepo.GetSingleByAsync(
+                va => va.Type == VirtualAccountType.Platform && !va.IsDeleted);
+
+            if (platformEscrow is null || string.IsNullOrEmpty(platformEscrow.ProviderReference))
+                return NaitrustResponse<DealResponse>.BadRequest(
+                    "Platform escrow account is not set up. Contact support.");
+
+            var idempotencyKey = $"release-{dealId}";
+            var transfer = await _anchor.InternalTransferAsync(
+                sourceSubAccountId: platformEscrow.ProviderReference,
+                destinationSubAccountId: sellerWallet.ProviderReference,
+                amountMinor: deal.AmountMinor,
+                currency: deal.Currency,
+                narration: $"Escrow release to seller – deal {deal.Reference}",
+                idempotencyKey: idempotencyKey,
+                ct: ct);
+
+            var instrRepo = _unitOfWork.GetRepository<PaymentInstruction>();
+            await instrRepo.AddAsync(new PaymentInstruction
+            {
+                Id = Guid.NewGuid(),
+                TransactionId = dealId,
+                VirtualAccountId = sellerWallet.Id,
+                InstructionType = PaymentInstructionType.Release,
+                Partner = PaymentPartnerId.Anchor,
+                IdempotencyKey = idempotencyKey,
+                Status = PaymentInstructionStatus.Confirmed,
+                PartnerReference = transfer.PartnerReference,
+                IsActive = true
+            });
+
+            var now = DateTime.UtcNow;
+            var entryGroupId = Guid.NewGuid();
+            var ledgerRepo = _unitOfWork.GetRepository<LedgerEntry>();
+
+            // Debit escrow (funds leaving escrow), credit seller wallet (funds arriving)
+            await ledgerRepo.AddAsync(new LedgerEntry
+            {
+                Id = Guid.NewGuid(),
+                TransactionId = dealId,
+                EntryGroupId = entryGroupId,
+                EventType = LedgerEventType.SellerPayoutExecuted,
+                Account = $"Escrow:{dealId}",
+                DebitMinor = 0,
+                CreditMinor = deal.AmountMinor,
+                Currency = deal.Currency,
+                Memo = $"Escrow release – deal {deal.Reference}",
+                CreatedAt = now
+            });
+
+            await ledgerRepo.AddAsync(new LedgerEntry
+            {
+                Id = Guid.NewGuid(),
+                TransactionId = dealId,
+                EntryGroupId = entryGroupId,
+                EventType = LedgerEventType.SellerPayoutExecuted,
+                Account = $"Seller:{sellerParty.UserId}",
+                DebitMinor = deal.AmountMinor,
+                CreditMinor = 0,
+                Currency = deal.Currency,
+                Memo = $"Seller payout received – deal {deal.Reference}",
+                CreatedAt = now
+            });
+
+            deal.PaymentStatus = PaymentStatus.Released;
+
+            await _notificationService.SendNotificationAsync(
+                sellerParty.UserId.Value, "Payment Released",
+                $"Deal {deal.Reference} is complete. {deal.AmountMinor / 100m:N2} {deal.Currency} has been credited to your wallet.",
+                "DealUpdate", null, ct);
         }
 
+        var completedAt = DateTime.UtcNow;
         deal.Status = DealStatus.Completed;
-        deal.CompletedAt = DateTime.UtcNow;
-        deal.UpdatedAt = DateTime.UtcNow;
+        deal.CompletedAt = completedAt;
+        deal.UpdatedAt = completedAt;
         await dealRepo.UpdateAsync(deal);
         await _unitOfWork.SaveChangesAsync();
 
         await _notificationService.SendNotificationAsync(
-            userId, "Delivery Confirmed",
-            $"Delivery has been confirmed for deal {deal.Reference}. Deal completed.",
+            userId, "Deal Completed",
+            $"Deal {deal.Reference} has been completed and funds released to the seller.",
             "DealUpdate", null, ct);
 
         return NaitrustResponse<DealResponse>.Success(
-            "Delivery confirmed successfully.",
+            "Delivery confirmed and funds released to seller.",
             await BuildDealResponse(deal));
     }
 
@@ -429,24 +616,110 @@ public class DealOrchestrator : IDealOrchestrator
         var deal = await dealRepo.GetByIdAsync(dealId);
 
         if (deal is null || deal.IsDeleted)
-        {
             return NaitrustResponse<DealResponse>.NotFound("Deal not found.");
-        }
 
-        // Cannot cancel already terminal states
         if (deal.Status == DealStatus.Cancelled || deal.Status == DealStatus.Completed)
-        {
             return NaitrustResponse<DealResponse>.BadRequest("Deal is already in a terminal status and cannot be cancelled.");
-        }
 
         if (!await IsUserPartyToDeal(dealId, userId))
-        {
             return NaitrustResponse<DealResponse>.Forbidden("You are not a party to this deal.");
+
+        // ── Refund escrow to buyer if deal was funded ─────────────────────────
+        if (deal.PaymentStatus == PaymentStatus.PaymentConfirmedByPartner)
+        {
+            var partyRepo = _unitOfWork.GetRepository<DealParty>();
+            var buyerParty = await partyRepo.GetSingleByAsync(
+                p => p.DealId == dealId && p.PartyType == PartyType.Buyer && p.UserId.HasValue && !p.IsDeleted);
+
+            if (buyerParty?.UserId is null)
+                return NaitrustResponse<DealResponse>.BadRequest(
+                    "Cannot refund: buyer party not found on this deal.");
+
+            var vaRepo = _unitOfWork.GetRepository<VirtualAccount>();
+
+            var buyerWallet = await vaRepo.GetSingleByAsync(
+                va => va.UserId == buyerParty.UserId && va.Type == VirtualAccountType.Settlement && !va.IsDeleted);
+
+            if (buyerWallet is null || string.IsNullOrEmpty(buyerWallet.ProviderReference))
+                return NaitrustResponse<DealResponse>.BadRequest(
+                    "Cannot refund: buyer wallet not found. Contact support.");
+
+            var platformEscrow = await vaRepo.GetSingleByAsync(
+                va => va.Type == VirtualAccountType.Platform && !va.IsDeleted);
+
+            if (platformEscrow is null || string.IsNullOrEmpty(platformEscrow.ProviderReference))
+                return NaitrustResponse<DealResponse>.BadRequest(
+                    "Platform escrow account is not set up. Contact support.");
+
+            var idempotencyKey = $"refund-{dealId}";
+            var transfer = await _anchor.InternalTransferAsync(
+                sourceSubAccountId: platformEscrow.ProviderReference,
+                destinationSubAccountId: buyerWallet.ProviderReference,
+                amountMinor: deal.AmountMinor,
+                currency: deal.Currency,
+                narration: $"Escrow refund to buyer – deal {deal.Reference}",
+                idempotencyKey: idempotencyKey,
+                ct: ct);
+
+            var instrRepo = _unitOfWork.GetRepository<PaymentInstruction>();
+            await instrRepo.AddAsync(new PaymentInstruction
+            {
+                Id = Guid.NewGuid(),
+                TransactionId = dealId,
+                VirtualAccountId = buyerWallet.Id,
+                InstructionType = PaymentInstructionType.Refund,
+                Partner = PaymentPartnerId.Anchor,
+                IdempotencyKey = idempotencyKey,
+                Status = PaymentInstructionStatus.Confirmed,
+                PartnerReference = transfer.PartnerReference,
+                IsActive = true
+            });
+
+            var now = DateTime.UtcNow;
+            var entryGroupId = Guid.NewGuid();
+            var ledgerRepo = _unitOfWork.GetRepository<LedgerEntry>();
+
+            // Debit escrow (funds leaving), credit buyer wallet (funds returning)
+            await ledgerRepo.AddAsync(new LedgerEntry
+            {
+                Id = Guid.NewGuid(),
+                TransactionId = dealId,
+                EntryGroupId = entryGroupId,
+                EventType = LedgerEventType.BuyerRefundExecuted,
+                Account = $"Escrow:{dealId}",
+                DebitMinor = 0,
+                CreditMinor = deal.AmountMinor,
+                Currency = deal.Currency,
+                Memo = $"Escrow refund – deal {deal.Reference}",
+                CreatedAt = now
+            });
+
+            await ledgerRepo.AddAsync(new LedgerEntry
+            {
+                Id = Guid.NewGuid(),
+                TransactionId = dealId,
+                EntryGroupId = entryGroupId,
+                EventType = LedgerEventType.BuyerRefundExecuted,
+                Account = $"Buyer:{buyerParty.UserId}",
+                DebitMinor = deal.AmountMinor,
+                CreditMinor = 0,
+                Currency = deal.Currency,
+                Memo = $"Buyer refund received – deal {deal.Reference}",
+                CreatedAt = now
+            });
+
+            deal.PaymentStatus = PaymentStatus.Refunded;
+
+            await _notificationService.SendNotificationAsync(
+                buyerParty.UserId.Value, "Refund Processed",
+                $"Deal {deal.Reference} was cancelled. {deal.AmountMinor / 100m:N2} {deal.Currency} has been refunded to your wallet.",
+                "DealUpdate", null, ct);
         }
 
+        var cancelledAt = DateTime.UtcNow;
         deal.Status = DealStatus.Cancelled;
-        deal.CancelledAt = DateTime.UtcNow;
-        deal.UpdatedAt = DateTime.UtcNow;
+        deal.CancelledAt = cancelledAt;
+        deal.UpdatedAt = cancelledAt;
         await dealRepo.UpdateAsync(deal);
         await _unitOfWork.SaveChangesAsync();
 
@@ -456,7 +729,9 @@ public class DealOrchestrator : IDealOrchestrator
             "DealUpdate", null, ct);
 
         return NaitrustResponse<DealResponse>.Success(
-            "Deal cancelled successfully.",
+            deal.PaymentStatus == PaymentStatus.Refunded
+                ? "Deal cancelled and escrow refunded to buyer."
+                : "Deal cancelled successfully.",
             await BuildDealResponse(deal));
     }
 

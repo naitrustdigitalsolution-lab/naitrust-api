@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Payments;
+using Naitrust.Domain.Models.Dtos.Responses.Payments;
 
 namespace Naitrust.Api.Controllers;
 
@@ -21,11 +22,9 @@ public class PaymentsController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Create a settlement account for the authenticated user or a business
-    /// </summary>
+    /// <summary>Create a settlement virtual account for the authenticated user or a business</summary>
     [HttpPost("settlement-accounts")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<VirtualAccountResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(409, Type = typeof(NaitrustResponse))]
@@ -35,11 +34,9 @@ public class PaymentsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get the authenticated user's settlement account
-    /// </summary>
+    /// <summary>Get the authenticated user's settlement account</summary>
     [HttpGet("settlement-accounts/me")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VirtualAccountResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetMySettlementAccountAsync()
@@ -48,11 +45,9 @@ public class PaymentsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get a business's settlement account
-    /// </summary>
+    /// <summary>Get a business's settlement account</summary>
     [HttpGet("settlement-accounts/business/{businessId:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VirtualAccountResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetBusinessSettlementAccountAsync(Guid businessId)
@@ -61,11 +56,9 @@ public class PaymentsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get payment status for a transaction
-    /// </summary>
+    /// <summary>Get the payment status for a transaction</summary>
     [HttpGet("transactions/{id:guid}/payment-status")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaymentStatusResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetPaymentStatusAsync(Guid id)
@@ -74,11 +67,9 @@ public class PaymentsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Request release of escrowed funds
-    /// </summary>
+    /// <summary>Request release of escrowed funds to the designated party</summary>
     [HttpPost("transactions/{id:guid}/request-release")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<ReleaseRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -88,11 +79,9 @@ public class PaymentsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get ledger entries for a transaction
-    /// </summary>
+    /// <summary>Get double-entry ledger entries for a transaction</summary>
     [HttpGet("transactions/{id:guid}/ledger")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaginatedResponse<LedgerEntryResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetLedgerAsync(Guid id, [FromQuery] PaginationRequest pagination)
@@ -101,11 +90,9 @@ public class PaymentsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get reconciliation status for a transaction
-    /// </summary>
+    /// <summary>Get reconciliation status between internal records and payment partner data</summary>
     [HttpGet("transactions/{id:guid}/reconciliation-status")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<ReconciliationStatusResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetReconciliationStatusAsync(Guid id)
@@ -114,11 +101,9 @@ public class PaymentsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Validate a payout bank account
-    /// </summary>
+    /// <summary>Validate a payout bank account with the payment partner before enabling withdrawals</summary>
     [HttpPost("payment-partners/{partner}/validate-payout-account")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PayoutAccountValidationResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ValidatePayoutAccountAsync(string partner, [FromBody] ValidatePayoutAccountRequest request)

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Public;
+using Naitrust.Domain.Models.Dtos.Responses.Public;
 
 namespace Naitrust.Api.Controllers;
 
@@ -18,11 +19,9 @@ public class PublicController : ControllerBase
         _publicFormService = publicFormService;
     }
 
-    /// <summary>
-    /// Join the waitlist with name and email
-    /// </summary>
+    /// <summary>Join the waitlist with name and email</summary>
     [HttpPost("joinWaitlist")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<PublicSubmissionResponse>))]
     [ProducesResponseType(409, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(422, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> JoinWaitlist([FromBody] JoinWaitlistRequest request)
@@ -31,12 +30,9 @@ public class PublicController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-
-    /// <summary>
-    /// Submit a contact us message
-    /// </summary>
+    /// <summary>Submit a contact us message</summary>
     [HttpPost("contactUs")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<PublicSubmissionResponse>))]
     [ProducesResponseType(422, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ContactUs([FromBody] ContactUsRequest request)
     {
@@ -44,11 +40,9 @@ public class PublicController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Subscribe to the newsletter
-    /// </summary>
+    /// <summary>Subscribe to the newsletter</summary>
     [HttpPost("subscribe")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<PublicSubmissionResponse>))]
     [ProducesResponseType(409, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(422, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> Subscribe([FromBody] SubscribeRequest request)
@@ -57,11 +51,9 @@ public class PublicController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Submit feedback with a rating
-    /// </summary>
+    /// <summary>Submit feedback with a rating</summary>
     [HttpPost("submitFeedback")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<PublicSubmissionResponse>))]
     [ProducesResponseType(422, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> SubmitFeedback([FromBody] SubmitFeedbackRequest request)
     {
@@ -69,11 +61,9 @@ public class PublicController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Report a concern or issue
-    /// </summary>
+    /// <summary>Report a concern or issue</summary>
     [HttpPost("reportConcern")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<PublicSubmissionResponse>))]
     [ProducesResponseType(422, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ReportConcern([FromBody] ReportConcernRequest request)
     {

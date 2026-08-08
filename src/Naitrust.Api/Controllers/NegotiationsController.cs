@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Negotiations;
+using Naitrust.Domain.Models.Dtos.Responses.Negotiations;
 
 namespace Naitrust.Api.Controllers;
 
@@ -21,12 +22,9 @@ public class NegotiationsController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Get current negotiation for a transaction (or null)
-    /// GET /transactions/{txnId}/negotiation
-    /// </summary>
+    /// <summary>Get the current negotiation for a transaction</summary>
     [HttpGet]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<NegotiationResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetAsync(Guid txnId)
     {
@@ -34,12 +32,9 @@ public class NegotiationsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Propose changes (opens or counters)
-    /// POST /transactions/{txnId}/negotiation/propose
-    /// </summary>
+    /// <summary>Propose changes to the deal terms (opens or counters a negotiation)</summary>
     [HttpPost("propose")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<NegotiationResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ProposeAsync(Guid txnId, [FromBody] ProposeNegotiationRequest request)
@@ -48,12 +43,9 @@ public class NegotiationsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Accept or decline a specific proposal
-    /// POST /transactions/{txnId}/negotiation/proposals/{proposalId}
-    /// </summary>
+    /// <summary>Accept or decline a specific negotiation proposal</summary>
     [HttpPost("proposals/{proposalId:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<NegotiationResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -63,12 +55,9 @@ public class NegotiationsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Withdraw the entire negotiation
-    /// POST /transactions/{txnId}/negotiation/withdraw
-    /// </summary>
+    /// <summary>Withdraw the entire negotiation</summary>
     [HttpPost("withdraw")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<NegotiationResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> WithdrawAsync(Guid txnId)

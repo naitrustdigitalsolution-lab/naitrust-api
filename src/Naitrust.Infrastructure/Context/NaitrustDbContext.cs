@@ -54,6 +54,10 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
     public DbSet<ReleaseRequest> ReleaseRequests => Set<ReleaseRequest>();
     public DbSet<PayoutAccount> PayoutAccounts => Set<PayoutAccount>();
 
+    // Wallet
+    public DbSet<LinkedBankAccount> LinkedBankAccounts => Set<LinkedBankAccount>();
+    public DbSet<WalletActivity> WalletActivities => Set<WalletActivity>();
+
     // Disputes
     public DbSet<Dispute> Disputes => Set<Dispute>();
     public DbSet<DisputeMessage> DisputeMessages => Set<DisputeMessage>();

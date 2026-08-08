@@ -11,11 +11,9 @@ namespace Naitrust.Api.Controllers;
 [Authorize]
 public class UploadController : ControllerBase
 {
-    /// <summary>
-    /// Upload a file
-    /// </summary>
+    /// <summary>Upload a file and receive a URL reference</summary>
     [HttpPost]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<UploadResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> UploadAsync(IFormFile file)

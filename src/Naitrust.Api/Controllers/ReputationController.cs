@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Reputation;
+using Naitrust.Domain.Models.Dtos.Responses.Reputation;
 
 namespace Naitrust.Api.Controllers;
 
@@ -21,11 +22,9 @@ public class ReputationController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Get a user's reputation profile
-    /// </summary>
+    /// <summary>Get a user's reputation profile by profile ID</summary>
     [HttpGet("{profileId:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<ReputationProfileResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetProfileAsync(Guid profileId)
@@ -34,11 +33,9 @@ public class ReputationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get the current user's reputation profile
-    /// </summary>
+    /// <summary>Get the current user's reputation profile</summary>
     [HttpGet("me")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<ReputationProfileResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetMyAsync()
@@ -47,11 +44,9 @@ public class ReputationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Submit a review for a counterparty on a transaction
-    /// </summary>
+    /// <summary>Submit a review for a counterparty on a completed transaction</summary>
     [HttpPost("~/api/transactions/{id:guid}/reviews")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<ReviewResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]

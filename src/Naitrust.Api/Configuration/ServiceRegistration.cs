@@ -63,6 +63,7 @@ public static class ServiceRegistration
         services.Configure<RedisSettings>(configuration.GetSection("Redis"));
         services.Configure<HangfireSettings>(configuration.GetSection("Hangfire"));
         services.Configure<ProvidusSettings>(configuration.GetSection("Providus"));
+        services.Configure<AnchorSettings>(configuration.GetSection("Anchor"));
         services.Configure<QoreIdSettings>(configuration.GetSection("QoreId"));
         services.Configure<StorageSettings>(configuration.GetSection("Storage"));
         services.Configure<EmailSettings>(configuration.GetSection("Email"));

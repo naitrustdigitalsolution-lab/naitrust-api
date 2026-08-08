@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
+using Naitrust.Domain.Models.Dtos.Responses.Notifications;
 
 namespace Naitrust.Api.Controllers;
 
@@ -20,11 +21,9 @@ public class NotificationsController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// List the current user's notifications
-    /// </summary>
+    /// <summary>List the current user's notifications</summary>
     [HttpGet]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaginatedResponse<NotificationResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ListAsync([FromQuery] PaginationRequest pagination)
     {
@@ -32,11 +31,9 @@ public class NotificationsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Mark a notification as read
-    /// </summary>
+    /// <summary>Mark a notification as read</summary>
     [HttpPatch("{id:guid}/read")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<bool>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> MarkReadAsync(Guid id)
@@ -45,11 +42,9 @@ public class NotificationsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Mark all notifications as read
-    /// </summary>
+    /// <summary>Mark all notifications as read</summary>
     [HttpPatch("read-all")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<bool>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> MarkAllReadAsync()
     {
