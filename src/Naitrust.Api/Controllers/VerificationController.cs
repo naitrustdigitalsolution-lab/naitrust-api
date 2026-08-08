@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Verification;
+using Naitrust.Domain.Models.Dtos.Responses.Verification;
 
 namespace Naitrust.Api.Controllers;
 
@@ -21,11 +22,9 @@ public class VerificationController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Start a new verification request
-    /// </summary>
+    /// <summary>Start a new verification request</summary>
     [HttpPost("start")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> StartAsync([FromBody] StartVerificationRequest request)
@@ -34,11 +33,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get the current user's verification status
-    /// </summary>
+    /// <summary>Get the current user's verification status</summary>
     [HttpGet("status")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<bool>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetStatusAsync()
@@ -47,11 +44,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Submit individual identity verification data
-    /// </summary>
+    /// <summary>Submit individual identity verification data</summary>
     [HttpPost("individual")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> SubmitIndividualAsync([FromBody] IndividualVerificationRequest request)
@@ -60,11 +55,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Submit business verification data
-    /// </summary>
+    /// <summary>Submit business verification data</summary>
     [HttpPost("business")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> SubmitBusinessAsync([FromBody] BusinessVerificationRequest request)
@@ -73,11 +66,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Submit facial verification (liveness check)
-    /// </summary>
+    /// <summary>Submit facial verification (liveness check)</summary>
     [HttpPost("{requestId:guid}/facial")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -87,11 +78,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Upload verification documents
-    /// </summary>
+    /// <summary>Upload verification documents</summary>
     [HttpPost("{requestId:guid}/documents")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -101,11 +90,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Submit ownership verification data
-    /// </summary>
+    /// <summary>Submit ownership verification data</summary>
     [HttpPost("{requestId:guid}/ownership")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -115,11 +102,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Verify a one-time code
-    /// </summary>
+    /// <summary>Verify a one-time code for a verification step</summary>
     [HttpPost("{requestId:guid}/verify-code")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<bool>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -129,11 +114,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get a verification request by ID
-    /// </summary>
+    /// <summary>Get a verification request by ID</summary>
     [HttpGet("requests/{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetRequestAsync(Guid id)
@@ -142,11 +125,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Trigger automated verification
-    /// </summary>
+    /// <summary>Trigger automated verification processing</summary>
     [HttpPost("requests/{id:guid}/run")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -156,11 +137,9 @@ public class VerificationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Request additional information for a verification step
-    /// </summary>
+    /// <summary>Request additional information for a verification step</summary>
     [HttpPost("requests/{id:guid}/request-more-info")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]

@@ -24,6 +24,7 @@ public class NaitrustUser : IdentityUser<Guid>
     public int? KycLevel { get; set; }
     public string? PinHash { get; set; }
     public string? TotpSecret { get; set; }
+    public string? AnchorCustomerId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; }
 }

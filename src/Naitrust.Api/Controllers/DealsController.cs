@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Transactions;
 
 namespace Naitrust.Api.Controllers;
 
@@ -23,11 +24,9 @@ public class DealsController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Create a new deal
-    /// </summary>
+    /// <summary>Create a new deal</summary>
     [HttpPost]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> CreateAsync([FromBody] CreateDealRequest request)
@@ -36,12 +35,10 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// List the current user's deals
-    /// </summary>
+    /// <summary>List the current user's deals</summary>
     [HttpGet]
     [HttpGet("my")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaginatedResponse<DealResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ListAsync([FromQuery] PaginationRequest pagination)
     {
@@ -49,11 +46,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get a deal by ID
-    /// </summary>
+    /// <summary>Get a deal by ID</summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetByIdAsync(Guid id)
@@ -62,11 +57,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Update a draft deal
-    /// </summary>
+    /// <summary>Update a draft deal</summary>
     [HttpPatch("{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -76,11 +69,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get all available transaction types
-    /// </summary>
+    /// <summary>Get all available transaction types</summary>
     [HttpGet("~/api/transaction-types")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<List<DealTypeResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetTypesAsync()
     {
@@ -88,11 +79,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Invite a counterparty to the deal
-    /// </summary>
+    /// <summary>Invite a counterparty to the deal</summary>
     [HttpPost("{id:guid}/invite")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -102,11 +91,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Accept a deal invitation
-    /// </summary>
+    /// <summary>Accept a deal invitation</summary>
     [HttpPost("{id:guid}/accept")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -116,11 +103,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Reject a deal invitation
-    /// </summary>
+    /// <summary>Reject a deal invitation</summary>
     [HttpPost("{id:guid}/reject")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -130,11 +115,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Propose terms for the deal
-    /// </summary>
+    /// <summary>Propose terms for the deal</summary>
     [HttpPost("{id:guid}/terms")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -144,11 +127,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Approve the proposed terms
-    /// </summary>
+    /// <summary>Approve the proposed terms</summary>
     [HttpPost("{id:guid}/approve-terms")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -158,11 +139,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Initiate funding for the deal
-    /// </summary>
+    /// <summary>Initiate funding for the deal (buyer transfers escrow amount to platform)</summary>
     [HttpPost("{id:guid}/fund")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -172,11 +151,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Submit delivery for the deal
-    /// </summary>
+    /// <summary>Submit delivery for the deal (seller marks goods/services as delivered)</summary>
     [HttpPost("{id:guid}/deliver")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -186,11 +163,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Confirm delivery and complete the deal
-    /// </summary>
+    /// <summary>Confirm delivery and release escrowed funds to the seller</summary>
     [HttpPost("{id:guid}/confirm")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -200,11 +175,9 @@ public class DealsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Cancel the deal
-    /// </summary>
+    /// <summary>Cancel the deal and refund the buyer if funds were escrowed</summary>
     [HttpPost("{id:guid}/cancel")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]

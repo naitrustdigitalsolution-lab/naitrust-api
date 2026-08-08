@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Disputes;
+using Naitrust.Domain.Models.Dtos.Responses.Disputes;
 
 namespace Naitrust.Api.Controllers;
 
@@ -21,12 +22,9 @@ public class DisputesController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Get the dispute for a transaction (singular)
-    /// Frontend: GET /transactions/{dealId}/dispute
-    /// </summary>
+    /// <summary>Get the dispute for a transaction</summary>
     [HttpGet("transactions/{txnId:guid}/dispute")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DisputeResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetByTransactionAsync(Guid txnId)
     {
@@ -34,12 +32,9 @@ public class DisputesController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Open a dispute on a transaction
-    /// Frontend: POST /transactions/{dealId}/dispute  body: {reason, description}
-    /// </summary>
+    /// <summary>Open a dispute on a transaction</summary>
     [HttpPost("transactions/{txnId:guid}/dispute")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<DisputeResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> OpenAsync(Guid txnId, [FromBody] OpenDisputeRequest request)
@@ -48,12 +43,9 @@ public class DisputesController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Add a message to a dispute thread
-    /// Frontend: POST /transactions/{dealId}/dispute/messages  body: {body}
-    /// </summary>
+    /// <summary>Add a message to a dispute thread</summary>
     [HttpPost("transactions/{txnId:guid}/dispute/messages")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<DisputeResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> AddMessageAsync(Guid txnId, [FromBody] AddDisputeMessageRequest request)

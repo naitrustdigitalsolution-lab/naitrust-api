@@ -3,6 +3,8 @@ using Naitrust.Application.ExternalServices;
 using Naitrust.Application.ExternalServices.CacheServices;
 using Naitrust.Application.ExternalServices.Communication;
 using Naitrust.Application.ExternalServices.Communication.Resend;
+using Naitrust.Application.ExternalServices.Anchor;
+using Naitrust.Application.ExternalServices.Providus;
 using Naitrust.Application.Services.Implementations.Admin;
 using Naitrust.Application.Services.Implementations.Ai;
 using Naitrust.Application.Services.Implementations.Auth;
@@ -38,6 +40,10 @@ public static class ApplicationLayerRegistration
         services.AddHttpClient<ResendEmailProvider>();
         services.AddScoped<IEmailProviderFactory, EmailProviderFactory>();
         services.AddScoped<IEmailService, EmailService>();
+
+        // Payment partners: provider → factory
+        services.AddHttpClient<AnchorPaymentPartner>();
+        services.AddScoped<IPaymentPartnerFactory, PaymentPartnerFactory>();
 
         // Auth
         services.AddScoped<IAuthService, AuthService>();
@@ -93,6 +99,9 @@ public static class ApplicationLayerRegistration
 
         // AI
         services.AddScoped<IAiService, AiIntelligenceService>();
+
+        // Wallet
+        services.AddScoped<IWalletService, WalletService>();
 
         // Security
         services.AddScoped<ISecurityService, SecurityService>();

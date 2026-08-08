@@ -1,5 +1,9 @@
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Naitrust.Application.ExternalServices;
+using Naitrust.Application.ExternalServices.Anchor;
 using Naitrust.Application.Services.Interfaces;
+using Naitrust.Domain.Configurations.ConfigModels;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Admin;
 using Naitrust.Domain.Models.Dtos.Responses.Admin;
@@ -8,6 +12,7 @@ using Naitrust.Domain.Models.Dtos.Responses.Transactions;
 using Naitrust.Domain.Models.Dtos.Responses.Verification;
 using Naitrust.Domain.Models.Entities;
 using Naitrust.Domain.Models.Enums.Disputes;
+using Naitrust.Domain.Models.Enums.Payments;
 using Naitrust.Domain.Models.Enums.Verification;
 using Naitrust.Infrastructure.Data.Interfaces;
 
@@ -16,10 +21,17 @@ namespace Naitrust.Application.Services.Implementations.Admin;
 public class AdminService : IAdminService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly AnchorPaymentPartner _anchor;
+    private readonly AnchorSettings _anchorSettings;
 
-    public AdminService(IUnitOfWork unitOfWork)
+    public AdminService(
+        IUnitOfWork unitOfWork,
+        AnchorPaymentPartner anchor,
+        IOptions<AnchorSettings> anchorSettings)
     {
         _unitOfWork = unitOfWork;
+        _anchor = anchor;
+        _anchorSettings = anchorSettings.Value;
     }
 
     public async Task<NaitrustResponse<PaginatedResponse<DealResponse>>> GetDealsAsync(PaginationRequest pagination, CancellationToken ct = default)
@@ -334,6 +346,66 @@ public class AdminService : IAdminService
             "Audit logs retrieved successfully.",
             new PaginatedResponse<AuditLogResponse>(responses, pagination.Page, pagination.PageSize, totalCount, totalPages));
     }
+
+    public async Task<NaitrustResponse<EscrowSetupResponse>> SetupPlatformEscrowAsync(CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(_anchorSettings.PlatformCustomerId))
+        {
+            return NaitrustResponse<EscrowSetupResponse>.BadRequest(
+                "Anchor:PlatformCustomerId is not configured. Set it in appsettings before running setup.");
+        }
+
+        var repo = _unitOfWork.GetRepository<VirtualAccount>();
+
+        // Idempotent — return existing if already provisioned
+        var existing = await repo.GetSingleByAsync(
+            va => va.Type == VirtualAccountType.Platform && !va.IsDeleted);
+
+        if (existing is not null)
+        {
+            return NaitrustResponse<EscrowSetupResponse>.Success(
+                "Platform escrow already provisioned.",
+                MapToEscrowResponse(existing));
+        }
+
+        // Create the subledger on Anchor under the platform customer
+        var result = await _anchor.CreateVirtualAccountAsync(
+            new CreateVirtualAccountPartnerRequest(
+                TransactionId: Guid.Empty,          // platform account, not deal-specific
+                AmountMinor: 0,
+                Currency: "NGN",
+                AccountName: "Naitrust Platform Escrow",
+                CustomerReference: _anchorSettings.PlatformCustomerId),
+            ct);
+
+        var va = new VirtualAccount
+        {
+            Id = Guid.NewGuid(),
+            UserId = null,
+            BusinessId = null,
+            Type = VirtualAccountType.Platform,
+            Partner = PaymentPartnerId.Anchor,
+            ProviderReference = result.ProviderReference,
+            AccountNumber = result.AccountNumber,
+            AccountName = result.AccountName,
+            BankName = result.BankName,
+            AmountReceivedMinor = 0,
+            Currency = "NGN",
+            Status = VirtualAccountStatus.Issued,
+            IsActive = true
+        };
+
+        await repo.AddAsync(va);
+        await _unitOfWork.SaveChangesAsync();
+
+        return NaitrustResponse<EscrowSetupResponse>.Created(
+            "Platform escrow subledger provisioned successfully.",
+            MapToEscrowResponse(va));
+    }
+
+    private static EscrowSetupResponse MapToEscrowResponse(VirtualAccount va) =>
+        new(va.Id, va.ProviderReference ?? "", va.AccountNumber ?? "",
+            va.AccountName ?? "", va.BankName ?? "", va.Status.ToString(), va.CreatedAt);
 
     private static List<AgreementSectionResponse> DeserializeSections(string? json)
     {

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.OpenApi.Models;
 
 namespace Naitrust.Api.Configuration;
@@ -39,6 +40,11 @@ public static class SwaggerConfiguration
                     Array.Empty<string>()
                 }
             });
+
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+                options.IncludeXmlComments(xmlPath);
         });
 
         return services;

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Transactions;
 
 namespace Naitrust.Api.Controllers;
 
@@ -21,11 +22,9 @@ public class TerminationController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Get the termination request for a transaction
-    /// </summary>
+    /// <summary>Get the termination request for a transaction</summary>
     [HttpGet]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealTerminationResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetAsync(Guid txnId)
@@ -34,11 +33,9 @@ public class TerminationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Request termination of a transaction
-    /// </summary>
+    /// <summary>Request termination of a transaction</summary>
     [HttpPost]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<DealTerminationResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> RequestAsync(Guid txnId, [FromBody] RequestTerminationRequest request)
@@ -47,11 +44,9 @@ public class TerminationController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Respond to a termination request (approve or reject)
-    /// </summary>
+    /// <summary>Respond to a termination request (approve or reject)</summary>
     [HttpPost("respond")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealTerminationResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]

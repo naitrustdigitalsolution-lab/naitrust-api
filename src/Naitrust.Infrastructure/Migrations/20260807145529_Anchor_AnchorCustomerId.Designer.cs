@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Naitrust.Infrastructure.Context;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Naitrust.Infrastructure.Migrations
 {
     [DbContext(typeof(NaitrustDbContext))]
-    partial class NaitrustDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807145529_Anchor_AnchorCustomerId")]
+    partial class Anchor_AnchorCustomerId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1344,54 +1347,6 @@ namespace Naitrust.Infrastructure.Migrations
                     b.HasIndex("TransactionId", "EventType");
 
                     b.ToTable("LedgerEntries", (string)null);
-                });
-
-            modelBuilder.Entity("Naitrust.Domain.Models.Entities.LinkedBankAccount", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("VerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LinkedBankAccounts");
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Milestone", b =>
@@ -2854,47 +2809,6 @@ namespace Naitrust.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("WaitlistEntries", (string)null);
-                });
-
-            modelBuilder.Entity("Naitrust.Domain.Models.Entities.WalletActivity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("AmountMinor")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WalletActivities");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
