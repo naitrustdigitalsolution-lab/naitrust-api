@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using System.Text.Json;
+using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -57,6 +57,18 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
     // Wallet
     public DbSet<LinkedBankAccount> LinkedBankAccounts => Set<LinkedBankAccount>();
     public DbSet<WalletActivity> WalletActivities => Set<WalletActivity>();
+
+    // Instant Transfers
+    public DbSet<InstantTransfer> InstantTransfers => Set<InstantTransfer>();
+
+    // Beneficiaries
+    public DbSet<Beneficiary> Beneficiaries => Set<Beneficiary>();
+
+    // Payment Requests
+    public DbSet<PaymentRequest> PaymentRequests => Set<PaymentRequest>();
+
+    // Counterparties
+    public DbSet<UserCounterpartyPreference> UserCounterpartyPreferences => Set<UserCounterpartyPreference>();
 
     // Disputes
     public DbSet<Dispute> Disputes => Set<Dispute>();
@@ -257,8 +269,8 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
                 Action = auditEntry.Action,
                 EntityType = auditEntry.EntityType,
                 EntityId = auditEntry.EntityId,
-                Before = auditEntry.OldValues.Count > 0 ? JsonSerializer.Serialize(auditEntry.OldValues) : null,
-                After = auditEntry.NewValues.Count > 0 ? JsonSerializer.Serialize(auditEntry.NewValues) : null,
+                Before = auditEntry.OldValues.Count > 0 ? JsonConvert.SerializeObject(auditEntry.OldValues) : null,
+                After = auditEntry.NewValues.Count > 0 ? JsonConvert.SerializeObject(auditEntry.NewValues) : null,
                 IpAddress = auditEntry.IpAddress,
                 CreatedAt = DateTime.UtcNow
             });

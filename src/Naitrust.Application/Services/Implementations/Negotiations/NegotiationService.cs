@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 using Microsoft.AspNetCore.Identity;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
@@ -61,7 +61,7 @@ public class NegotiationService : INegotiationService
                 Id = Guid.NewGuid(),
                 NegotiationId = existing.Id,
                 ProposedByUserId = userId,
-                ProposedChangesJson = JsonSerializer.Serialize(request.Changes),
+                ProposedChangesJson = JsonConvert.SerializeObject(request.Changes),
                 Message = request.Message,
                 Status = ProposalStatus.Pending,
                 IsActive = true
@@ -94,7 +94,7 @@ public class NegotiationService : INegotiationService
             Id = Guid.NewGuid(),
             NegotiationId = negotiation.Id,
             ProposedByUserId = userId,
-            ProposedChangesJson = JsonSerializer.Serialize(request.Changes),
+            ProposedChangesJson = JsonConvert.SerializeObject(request.Changes),
             Message = request.Message,
             Status = ProposalStatus.Pending,
             IsActive = true
@@ -207,7 +207,7 @@ public class NegotiationService : INegotiationService
             ProposedChangesResponse? changes = null;
             if (!string.IsNullOrEmpty(p.ProposedChangesJson))
             {
-                var input = JsonSerializer.Deserialize<ProposedChangesInput>(p.ProposedChangesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var input = JsonConvert.DeserializeObject<ProposedChangesInput>(p.ProposedChangesJson);
                 if (input is not null)
                 {
                     changes = new ProposedChangesResponse(input.AmountMinor, input.DeliveryDueDate, input.ReleaseConditions, input.AgreementNote);

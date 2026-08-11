@@ -4,7 +4,7 @@ public record PublicInvitationPreviewResponse(
     string Token,
     Guid InvitationId,
     string? Reference,
-    string FromName,
+    string InviterName,
     string FromRole,
     string YourRole,
     string PartyMode,

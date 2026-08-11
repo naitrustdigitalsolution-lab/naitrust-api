@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Naitrust.Application.ExternalServices.Anchor;
 
@@ -6,67 +6,67 @@ namespace Naitrust.Application.ExternalServices.Anchor;
 
 internal sealed class AnchorRequest<TAttr>
 {
-    [JsonPropertyName("data")]
+    [JsonProperty("data")]
     public AnchorRequestData<TAttr> Data { get; set; } = default!;
 }
 
 internal sealed class AnchorRequestData<TAttr>
 {
-    [JsonPropertyName("type")]
+    [JsonProperty("type")]
     public string Type { get; set; } = default!;
 
-    [JsonPropertyName("attributes")]
+    [JsonProperty("attributes")]
     public TAttr Attributes { get; set; } = default!;
 
-    [JsonPropertyName("relationships")]
+    [JsonProperty("relationships")]
     public Dictionary<string, AnchorRelationship>? Relationships { get; set; }
 }
 
 internal sealed class AnchorResponse<TAttr>
 {
-    [JsonPropertyName("data")]
+    [JsonProperty("data")]
     public AnchorResponseData<TAttr> Data { get; set; } = default!;
 
-    [JsonPropertyName("included")]
+    [JsonProperty("included")]
     public List<AnchorIncluded>? Included { get; set; }
 }
 
 internal sealed class AnchorResponseData<TAttr>
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = default!;
 
-    [JsonPropertyName("type")]
+    [JsonProperty("type")]
     public string Type { get; set; } = default!;
 
-    [JsonPropertyName("attributes")]
+    [JsonProperty("attributes")]
     public TAttr Attributes { get; set; } = default!;
 }
 
 internal sealed class AnchorIncluded
 {
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = default!;
 
-    [JsonPropertyName("type")]
+    [JsonProperty("type")]
     public string Type { get; set; } = default!;
 
-    [JsonPropertyName("attributes")]
+    [JsonProperty("attributes")]
     public Dictionary<string, object?>? Attributes { get; set; }
 }
 
 internal sealed class AnchorRelationship
 {
-    [JsonPropertyName("data")]
+    [JsonProperty("data")]
     public AnchorResourceId Data { get; set; } = default!;
 }
 
 internal sealed class AnchorResourceId
 {
-    [JsonPropertyName("type")]
+    [JsonProperty("type")]
     public string Type { get; set; } = default!;
 
-    [JsonPropertyName("id")]
+    [JsonProperty("id")]
     public string Id { get; set; } = default!;
 }
 
@@ -74,28 +74,28 @@ internal sealed class AnchorResourceId
 
 internal sealed class AnchorCustomerAttributes
 {
-    [JsonPropertyName("fullName")]
+    [JsonProperty("fullName")]
     public string FullName { get; set; } = default!;
 
-    [JsonPropertyName("email")]
+    [JsonProperty("email")]
     public string Email { get; set; } = default!;
 
-    [JsonPropertyName("phoneNumber")]
+    [JsonProperty("phoneNumber")]
     public string PhoneNumber { get; set; } = default!;
 
-    [JsonPropertyName("bvn")]
+    [JsonProperty("bvn")]
     public string Bvn { get; set; } = default!;
 }
 
 internal sealed class AnchorCustomerResponseAttributes
 {
-    [JsonPropertyName("fullName")]
+    [JsonProperty("fullName")]
     public string? FullName { get; set; }
 
-    [JsonPropertyName("email")]
+    [JsonProperty("email")]
     public string? Email { get; set; }
 
-    [JsonPropertyName("status")]
+    [JsonProperty("status")]
     public string? Status { get; set; }
 }
 
@@ -103,22 +103,22 @@ internal sealed class AnchorCustomerResponseAttributes
 
 internal sealed class AnchorSubAccountAttributes
 {
-    [JsonPropertyName("productName")]
+    [JsonProperty("productName")]
     public string ProductName { get; set; } = "escrow";
 
-    [JsonPropertyName("createVirtualNuban")]
+    [JsonProperty("createVirtualNuban")]
     public bool CreateVirtualNuban { get; set; } = true;
 }
 
 internal sealed class AnchorSubAccountResponseAttributes
 {
-    [JsonPropertyName("status")]
+    [JsonProperty("status")]
     public string? Status { get; set; }
 
-    [JsonPropertyName("accountName")]
+    [JsonProperty("accountName")]
     public string? AccountName { get; set; }
 
-    [JsonPropertyName("balance")]
+    [JsonProperty("balance")]
     public long? Balance { get; set; }
 }
 
@@ -126,10 +126,10 @@ internal sealed class AnchorSubAccountResponseAttributes
 
 internal sealed class AnchorAccountAttributes
 {
-    [JsonPropertyName("status")]
+    [JsonProperty("status")]
     public string? Status { get; set; }
 
-    [JsonPropertyName("balance")]
+    [JsonProperty("balance")]
     public long? Balance { get; set; }
 }
 
@@ -137,31 +137,31 @@ internal sealed class AnchorAccountAttributes
 
 internal sealed class AnchorNipTransferAttributes
 {
-    [JsonPropertyName("amount")]
+    [JsonProperty("amount")]
     public long Amount { get; set; }
 
-    [JsonPropertyName("currency")]
+    [JsonProperty("currency")]
     public string Currency { get; set; } = "NGN";
 
-    [JsonPropertyName("narration")]
+    [JsonProperty("narration")]
     public string Narration { get; set; } = default!;
 
-    [JsonPropertyName("beneficiaryAccountNumber")]
+    [JsonProperty("beneficiaryAccountNumber")]
     public string BeneficiaryAccountNumber { get; set; } = default!;
 
-    [JsonPropertyName("beneficiaryBankCode")]
+    [JsonProperty("beneficiaryBankCode")]
     public string BeneficiaryBankCode { get; set; } = default!;
 }
 
 internal sealed class AnchorTransferResponseAttributes
 {
-    [JsonPropertyName("status")]
+    [JsonProperty("status")]
     public string? Status { get; set; }
 
-    [JsonPropertyName("amount")]
+    [JsonProperty("amount")]
     public long? Amount { get; set; }
 
-    [JsonPropertyName("narration")]
+    [JsonProperty("narration")]
     public string? Narration { get; set; }
 }
 
@@ -169,13 +169,13 @@ internal sealed class AnchorTransferResponseAttributes
 
 internal sealed class AnchorAccountTransferAttributes
 {
-    [JsonPropertyName("amount")]
+    [JsonProperty("amount")]
     public long Amount { get; set; }
 
-    [JsonPropertyName("currency")]
+    [JsonProperty("currency")]
     public string Currency { get; set; } = "NGN";
 
-    [JsonPropertyName("narration")]
+    [JsonProperty("narration")]
     public string Narration { get; set; } = default!;
 }
 
@@ -183,22 +183,22 @@ internal sealed class AnchorAccountTransferAttributes
 
 internal sealed class AnchorNameEnquiryAttributes
 {
-    [JsonPropertyName("bankCode")]
+    [JsonProperty("bankCode")]
     public string BankCode { get; set; } = default!;
 
-    [JsonPropertyName("accountNumber")]
+    [JsonProperty("accountNumber")]
     public string AccountNumber { get; set; } = default!;
 }
 
 internal sealed class AnchorNameEnquiryResponseAttributes
 {
-    [JsonPropertyName("accountName")]
+    [JsonProperty("accountName")]
     public string? AccountName { get; set; }
 
-    [JsonPropertyName("bankName")]
+    [JsonProperty("bankName")]
     public string? BankName { get; set; }
 
-    [JsonPropertyName("accountNumber")]
+    [JsonProperty("accountNumber")]
     public string? AccountNumber { get; set; }
 }
 

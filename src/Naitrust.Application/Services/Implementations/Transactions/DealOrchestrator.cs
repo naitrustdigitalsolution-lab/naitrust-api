@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Naitrust.Application.ExternalServices;
 using Naitrust.Application.ExternalServices.Anchor;
 using Naitrust.Application.Services.Implementations.Invitations;
@@ -237,7 +238,7 @@ public class DealOrchestrator : IDealOrchestrator
         string? sectionsJson = null;
         if (request.Sections is not null && request.Sections.Count > 0)
         {
-            sectionsJson = System.Text.Json.JsonSerializer.Serialize(request.Sections);
+            sectionsJson = JsonConvert.SerializeObject(request.Sections);
         }
 
         var agreement = new Agreement
@@ -433,6 +434,9 @@ public class DealOrchestrator : IDealOrchestrator
         deal.PaymentStatus = PaymentStatus.PaymentConfirmedByPartner;
         deal.UpdatedAt = now;
         await dealRepo.UpdateAsync(deal);
+
+        // Seed default tracking milestones (idempotent)
+        await SeedDefaultMilestonesAsync(dealId, userId, now);
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -827,8 +831,7 @@ public class DealOrchestrator : IDealOrchestrator
         if (string.IsNullOrWhiteSpace(json)) return new List<AgreementSectionResponse>();
         try
         {
-            return System.Text.Json.JsonSerializer.Deserialize<List<AgreementSectionResponse>>(json,
-                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            return JsonConvert.DeserializeObject<List<AgreementSectionResponse>>(json)
                 ?? new List<AgreementSectionResponse>();
         }
         catch
@@ -878,5 +881,49 @@ public class DealOrchestrator : IDealOrchestrator
             DealStatus.Cancelled => new List<AllowedActionDto>(),
             _ => new List<AllowedActionDto>()
         };
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private async Task SeedDefaultMilestonesAsync(Guid dealId, Guid fundedByUserId, DateTime now)
+    {
+        var repo = _unitOfWork.GetRepository<Milestone>();
+        var existing = await repo.GetAllDataAsync(m => m.DealId == dealId && !m.IsDeleted);
+        if (existing.Any()) { return; }
+
+        // Mirror the UI's default MILESTONE_STAGES
+        var stages = new[]
+        {
+            ("Order confirmed",       "Both parties agreed the terms and the deal is funded."),
+            ("Dispatched",            "The seller picked up and dispatched the goods."),
+            ("In transit",            "Goods are on the way to the destination."),
+            ("Arrived",               "Goods reached the destination for handover."),
+            ("Delivered & confirmed", "Buyer confirmed delivery — release can proceed.")
+        };
+
+        for (var i = 0; i < stages.Length; i++)
+        {
+            var (title, description) = stages[i];
+
+            // First stage is already "done" at funding; second is "current"; rest are "pending"
+            var status = i == 0
+                ? MilestoneStatus.Approved
+                : i == 1
+                    ? MilestoneStatus.InProgress
+                    : MilestoneStatus.Pending;
+
+            await repo.AddAsync(new Milestone
+            {
+                Id = Guid.NewGuid(),
+                DealId = dealId,
+                Title = title,
+                Description = description,
+                SortOrder = i,
+                Status = status,
+                UpdatedByUserId = status == MilestoneStatus.Approved ? fundedByUserId : null,
+                StatusChangedAt = status == MilestoneStatus.Approved ? now : null,
+                IsActive = true
+            });
+        }
     }
 }

@@ -20,7 +20,14 @@ if (port is not null)
 builder.AddSerilogLogging();
 
 // All services (Infrastructure + Application + API-level)
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver =
+            new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+        options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAllServices(builder.Configuration);
 

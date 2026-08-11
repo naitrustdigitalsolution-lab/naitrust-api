@@ -72,6 +72,17 @@ public class WalletController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
+    /// <summary>Initiate a wallet funding request from a linked bank account</summary>
+    [HttpPost("fund")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<WalletAccountResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> FundAsync([FromBody] FundWalletRequest request)
+    {
+        var response = await _walletService.FundAsync(GetUserId(), request);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
     /// <summary>Withdraw funds from wallet to a linked bank account via NIP transfer</summary>
     [HttpPost("withdraw")]
     [ProducesResponseType(200, Type = typeof(NaitrustResponse<WalletAccountResponse>))]

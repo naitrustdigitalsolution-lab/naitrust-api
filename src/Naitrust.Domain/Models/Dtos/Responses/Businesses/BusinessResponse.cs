@@ -27,6 +27,6 @@ public record BusinessResponse(
     DateTime? OwnershipVerifiedAt,
     DateTime CreatedAt);
 
-public record SocialHandleDto(string Platform, string Handle);
+public record SocialHandleDto(string Platform, string Value);
 
 public record PaymentAccountDto(string BankName, string AccountNumber, string AccountName);

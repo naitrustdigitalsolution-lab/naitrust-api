@@ -22,24 +22,28 @@ public class UnitOfWork<TContext> : IUnitOfWork where TContext : DbContext
 
     public async Task CommitTransactionAsync()
     {
-        if (_transaction == null) throw new InvalidOperationException("No transaction has been started.");
+        if (_transaction == null) { throw new InvalidOperationException("No transaction has been started."); }
         await _transaction.CommitAsync();
     }
 
     public async Task RollbackTransactionAsync()
     {
-        if (_transaction == null) throw new InvalidOperationException("No transaction has been started.");
+        if (_transaction == null) { throw new InvalidOperationException("No transaction has been started."); }
         await _transaction.RollbackAsync();
     }
 
     public IRepository<TEntity> GetRepository<TEntity>() where TEntity : class
     {
         if (_repositories == null)
+        {
             _repositories = new Dictionary<Type, object>();
+        }
 
         var type = typeof(TEntity);
         if (!_repositories.ContainsKey(type))
+        {
             _repositories[type] = new Repository<TEntity>(_context);
+        }
 
         return (IRepository<TEntity>)_repositories[type];
     }

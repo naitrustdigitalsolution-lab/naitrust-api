@@ -1,9 +1,8 @@
-using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Options;
 using Naitrust.Domain.Configurations.ConfigModels;
 
@@ -14,12 +13,6 @@ public class AnchorPaymentPartner : IPaymentPartner
     private readonly HttpClient _httpClient;
     private readonly AnchorSettings _settings;
     private readonly ILogger<AnchorPaymentPartner> _logger;
-
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
 
     public AnchorPaymentPartner(
         HttpClient httpClient,
@@ -104,36 +97,18 @@ public class AnchorPaymentPartner : IPaymentPartner
         if (!VerifySignature(request.Payload, request.Signature))
             throw new UnauthorizedAccessException("Anchor webhook signature verification failed.");
 
-        using var doc = JsonDocument.Parse(request.Payload);
-        var root = doc.RootElement;
+        var root = JObject.Parse(request.Payload);
 
-        var eventType = root.TryGetProperty("event", out var evtEl)
-            ? evtEl.GetString() ?? ""
-            : "";
+        var eventType = root["event"]?.Value<string>() ?? "";
 
-        var data = root.GetProperty("data");
-        var eventId = data.TryGetProperty("id", out var idEl)
-            ? idEl.GetString() ?? ""
-            : Guid.NewGuid().ToString();
+        var data = root["data"] as JObject ?? new JObject();
+        var eventId = data["id"]?.Value<string>() ?? Guid.NewGuid().ToString();
 
-        long amountMinor = 0;
-        var currency = "NGN";
-        var virtualAccountRef = "";
-
-        if (data.TryGetProperty("attributes", out var attrs))
-        {
-            if (attrs.TryGetProperty("amount", out var amt)) amountMinor = amt.GetInt64();
-            if (attrs.TryGetProperty("currency", out var cur)) currency = cur.GetString() ?? "NGN";
-        }
+        var amountMinor = data["attributes"]?["amount"]?.Value<long>() ?? 0L;
+        var currency = data["attributes"]?["currency"]?.Value<string>() ?? "NGN";
 
         // Sub-account reference lives in relationships.account.data.id
-        if (data.TryGetProperty("relationships", out var rels) &&
-            rels.TryGetProperty("account", out var acctRel) &&
-            acctRel.TryGetProperty("data", out var acctData) &&
-            acctData.TryGetProperty("id", out var acctId))
-        {
-            virtualAccountRef = acctId.GetString() ?? "";
-        }
+        var virtualAccountRef = data["relationships"]?["account"]?["data"]?["id"]?.Value<string>() ?? "";
 
         _logger.LogInformation(
             "Anchor webhook received: Event={Event}, SubAccount={SubAccount}, Amount={Amount}",
@@ -154,10 +129,11 @@ public class AnchorPaymentPartner : IPaymentPartner
     public async Task<FundingStatusResult> GetFundingStatusAsync(
         FundingStatusRequest request, CancellationToken ct = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<AnchorResponse<AnchorAccountAttributes>>(
-            $"accounts/{request.ProviderReference}", SerializerOptions, ct);
+        var httpResp = await _httpClient.GetAsync($"accounts/{request.ProviderReference}", ct);
+        var responseBody = await httpResp.Content.ReadAsStringAsync(ct);
+        var response = JsonConvert.DeserializeObject<AnchorResponse<AnchorAccountAttributes>>(responseBody);
 
-        if (response is null) return new FundingStatusResult("unknown", 0);
+        if (response is null) { return new FundingStatusResult("unknown", 0); }
 
         var attrs = response.Data.Attributes;
         return new FundingStatusResult(
@@ -261,7 +237,7 @@ public class AnchorPaymentPartner : IPaymentPartner
 
         using var req = new HttpRequestMessage(HttpMethod.Post, "transfers")
         {
-            Content = JsonContent.Create(body, options: SerializerOptions)
+            Content = ToJsonContent(body)
         };
         req.Headers.Add("x-idempotency-key", idempotencyKey);
 
@@ -274,8 +250,8 @@ public class AnchorPaymentPartner : IPaymentPartner
             throw new InvalidOperationException($"Anchor internal transfer failed ({httpResp.StatusCode}): {err}");
         }
 
-        var result = await httpResp.Content.ReadFromJsonAsync<AnchorResponse<AnchorTransferResponseAttributes>>(
-            SerializerOptions, ct);
+        var resultJson = await httpResp.Content.ReadAsStringAsync(ct);
+        var result = JsonConvert.DeserializeObject<AnchorResponse<AnchorTransferResponseAttributes>>(resultJson);
 
         _logger.LogInformation(
             "Anchor internal transfer {Id} from {Src} to {Dst}: {Amount} {Currency}",
@@ -379,7 +355,7 @@ public class AnchorPaymentPartner : IPaymentPartner
 
         using var req = new HttpRequestMessage(HttpMethod.Post, "transfers")
         {
-            Content = JsonContent.Create(body, options: SerializerOptions)
+            Content = ToJsonContent(body)
         };
         req.Headers.Add("x-idempotency-key", idempotencyKey);
 
@@ -392,8 +368,8 @@ public class AnchorPaymentPartner : IPaymentPartner
             throw new InvalidOperationException($"Anchor transfer failed ({httpResp.StatusCode}): {err}");
         }
 
-        var result = await httpResp.Content.ReadFromJsonAsync<AnchorResponse<AnchorTransferResponseAttributes>>(
-            SerializerOptions, ct);
+        var resultJson = await httpResp.Content.ReadAsStringAsync(ct);
+        var result = JsonConvert.DeserializeObject<AnchorResponse<AnchorTransferResponseAttributes>>(resultJson);
 
         return new PaymentInstructionResult(
             PartnerReference: result!.Data.Id,
@@ -402,7 +378,7 @@ public class AnchorPaymentPartner : IPaymentPartner
 
     private async Task<TResp> PostAsync<TResp>(string path, object body, CancellationToken ct)
     {
-        var httpResp = await _httpClient.PostAsJsonAsync(path, body, SerializerOptions, ct);
+        var httpResp = await _httpClient.PostAsync(path, ToJsonContent(body), ct);
 
         if (!httpResp.IsSuccessStatusCode)
         {
@@ -411,8 +387,12 @@ public class AnchorPaymentPartner : IPaymentPartner
             throw new InvalidOperationException($"Anchor API error ({httpResp.StatusCode}): {err}");
         }
 
-        return (await httpResp.Content.ReadFromJsonAsync<TResp>(SerializerOptions, ct))!;
+        var json = await httpResp.Content.ReadAsStringAsync(ct);
+        return JsonConvert.DeserializeObject<TResp>(json)!;
     }
+
+    private static StringContent ToJsonContent(object body) =>
+        new(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
 
     private bool VerifySignature(string payload, string signature)
     {

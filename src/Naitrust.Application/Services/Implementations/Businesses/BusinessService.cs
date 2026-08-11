@@ -1,5 +1,5 @@
-using System.Text.Json;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using Microsoft.AspNetCore.Identity;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
@@ -15,8 +15,6 @@ public class BusinessService : IBusinessService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<NaitrustUser> _userManager;
-
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     public BusinessService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager)
     {
@@ -127,24 +125,24 @@ public class BusinessService : IBusinessService
             return NaitrustResponse<BusinessResponse>.NotFound("Business not found.");
         }
 
-        if (request.Name is not null) business.Name = request.Name;
-        if (request.Slug is not null) business.Slug = request.Slug;
-        if (request.Description is not null) business.Description = request.Description;
-        if (request.OwnerName is not null) business.OwnerName = request.OwnerName;
-        if (request.Email is not null) business.Email = request.Email;
+        if (request.Name is not null) { business.Name = request.Name; }
+        if (request.Slug is not null) { business.Slug = request.Slug; }
+        if (request.Description is not null) { business.Description = request.Description; }
+        if (request.OwnerName is not null) { business.OwnerName = request.OwnerName; }
+        if (request.Email is not null) { business.Email = request.Email; }
         var phone = request.PhoneNumber ?? request.Phone;
-        if (phone is not null) business.Phone = phone;
-        if (request.Website is not null) business.Website = request.Website;
-        if (request.RegistrationNumber is not null) business.RegistrationNumber = request.RegistrationNumber;
-        if (request.TaxId is not null) business.TaxId = request.TaxId;
-        if (request.Country is not null) business.Country = request.Country;
-        if (request.State is not null) business.State = request.State;
-        if (request.City is not null) business.City = request.City;
-        if (request.Address is not null) business.Address = request.Address;
-        if (request.SocialHandles is not null) business.SocialHandles = request.SocialHandles;
-        if (request.PaymentAccountBankName is not null) business.PaymentAccountBankName = request.PaymentAccountBankName;
-        if (request.PaymentAccountNumber is not null) business.PaymentAccountNumber = request.PaymentAccountNumber;
-        if (request.PaymentAccountName is not null) business.PaymentAccountName = request.PaymentAccountName;
+        if (phone is not null) { business.Phone = phone; }
+        if (request.Website is not null) { business.Website = request.Website; }
+        if (request.RegistrationNumber is not null) { business.RegistrationNumber = request.RegistrationNumber; }
+        if (request.TaxId is not null) { business.TaxId = request.TaxId; }
+        if (request.Country is not null) { business.Country = request.Country; }
+        if (request.State is not null) { business.State = request.State; }
+        if (request.City is not null) { business.City = request.City; }
+        if (request.Address is not null) { business.Address = request.Address; }
+        if (request.SocialHandles is not null) { business.SocialHandles = request.SocialHandles; }
+        if (request.PaymentAccountBankName is not null) { business.PaymentAccountBankName = request.PaymentAccountBankName; }
+        if (request.PaymentAccountNumber is not null) { business.PaymentAccountNumber = request.PaymentAccountNumber; }
+        if (request.PaymentAccountName is not null) { business.PaymentAccountName = request.PaymentAccountName; }
 
         await repo.UpdateAsync(business);
         await _unitOfWork.SaveChangesAsync();
@@ -281,7 +279,7 @@ public class BusinessService : IBusinessService
         {
             try
             {
-                socialHandles = JsonSerializer.Deserialize<List<SocialHandleDto>>(business.SocialHandles, JsonOptions);
+                socialHandles = JsonConvert.DeserializeObject<List<SocialHandleDto>>(business.SocialHandles);
             }
             catch
             {

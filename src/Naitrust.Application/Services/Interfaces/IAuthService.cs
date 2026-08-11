@@ -9,7 +9,7 @@ public interface IAuthService
     Task<NaitrustResponse<AuthResponse>> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
     Task<NaitrustResponse<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken ct = default);
     Task<NaitrustResponse<bool>> LogoutAsync(Guid userId, CancellationToken ct = default);
-    Task<NaitrustResponse<FrontendUserResponse>> GetProfileAsync(Guid userId, CancellationToken ct = default);
+    Task<NaitrustResponse<ProfileResponse>> GetProfileAsync(Guid userId, CancellationToken ct = default);
     Task<NaitrustResponse<FrontendUserResponse>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default);
     Task<NaitrustResponse<AuthResponse>> VerifyEmailAsync(VerifyEmailRequest request, CancellationToken ct = default);
     Task<NaitrustResponse<bool>> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken ct = default);
