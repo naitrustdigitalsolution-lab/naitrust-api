@@ -9,6 +9,7 @@ using Naitrust.Domain.Models.Dtos.Requests.Admin;
 using Naitrust.Domain.Models.Dtos.Responses.Admin;
 using Naitrust.Domain.Models.Dtos.Responses.Disputes;
 using Naitrust.Domain.Models.Dtos.Responses.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Public;
 using Naitrust.Domain.Models.Dtos.Responses.Verification;
 using Naitrust.Domain.Models.Entities;
 using Naitrust.Domain.Models.Enums.Disputes;
@@ -345,6 +346,32 @@ public class AdminService : IAdminService
         return NaitrustResponse<PaginatedResponse<AuditLogResponse>>.Success(
             "Audit logs retrieved successfully.",
             new PaginatedResponse<AuditLogResponse>(responses, pagination.Page, pagination.PageSize, totalCount, totalPages));
+    }
+
+    public async Task<NaitrustResponse<PaginatedResponse<WaitlistEntryResponse>>> GetWaitlistAsync(PaginationRequest pagination, CancellationToken ct = default)
+    {
+        var repo = _unitOfWork.GetRepository<WaitlistEntry>();
+        var all = await repo.GetAllDataAsync(
+            w => !w.IsDeleted,
+            orderBy: q => q.OrderByDescending(w => w.SubmittedAt ?? w.CreatedAt));
+
+        var list = all.ToList();
+        var totalCount = list.Count;
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pagination.PageSize);
+
+        var items = list
+            .Skip((pagination.Page - 1) * pagination.PageSize)
+            .Take(pagination.PageSize)
+            .Select(w => new WaitlistEntryResponse(
+                w.Id, w.Name, w.Email, w.Phone, w.Source,
+                w.BusinessName, w.UserType, w.TransactionRange,
+                w.TransactionNeed, w.Expectations, w.Consent,
+                w.SubmittedAt, w.CreatedAt))
+            .ToList();
+
+        return NaitrustResponse<PaginatedResponse<WaitlistEntryResponse>>.Success(
+            "Waitlist retrieved successfully.",
+            new PaginatedResponse<WaitlistEntryResponse>(items, pagination.Page, pagination.PageSize, totalCount, totalPages));
     }
 
     public async Task<NaitrustResponse<EscrowSetupResponse>> SetupPlatformEscrowAsync(CancellationToken ct = default)

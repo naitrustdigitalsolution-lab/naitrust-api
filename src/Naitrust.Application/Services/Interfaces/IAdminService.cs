@@ -3,6 +3,7 @@ using Naitrust.Domain.Models.Dtos.Requests.Admin;
 using Naitrust.Domain.Models.Dtos.Responses.Admin;
 using Naitrust.Domain.Models.Dtos.Responses.Disputes;
 using Naitrust.Domain.Models.Dtos.Responses.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Public;
 using Naitrust.Domain.Models.Dtos.Responses.Verification;
 
 namespace Naitrust.Application.Services.Interfaces;
@@ -43,6 +44,11 @@ public interface IAdminService
     /// Retrieves paginated system audit logs for administrative review.
     /// </summary>
     Task<NaitrustResponse<PaginatedResponse<AuditLogResponse>>> GetAuditLogsAsync(PaginationRequest pagination, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves a paginated list of all waitlist entries.
+    /// </summary>
+    Task<NaitrustResponse<PaginatedResponse<WaitlistEntryResponse>>> GetWaitlistAsync(PaginationRequest pagination, CancellationToken ct = default);
 
     /// <summary>
     /// One-time setup: provisions the platform's central escrow subledger on Anchor.
