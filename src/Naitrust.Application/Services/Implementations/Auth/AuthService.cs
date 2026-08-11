@@ -187,16 +187,16 @@ public class AuthService : IAuthService
         return NaitrustResponse<bool>.Success("Logged out successfully.", true);
     }
 
-    public async Task<NaitrustResponse<FrontendUserResponse>> GetProfileAsync(Guid userId, CancellationToken ct = default)
+    public async Task<NaitrustResponse<ProfileResponse>> GetProfileAsync(Guid userId, CancellationToken ct = default)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null || user.IsDeleted)
         {
-            return NaitrustResponse<FrontendUserResponse>.NotFound("User not found.");
+            return NaitrustResponse<ProfileResponse>.NotFound("User not found.");
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        return NaitrustResponse<FrontendUserResponse>.Success("User profile retrieved.", BuildUserResponse(user, roles));
+        return NaitrustResponse<ProfileResponse>.Success("User profile retrieved.", new ProfileResponse(BuildUserResponse(user, roles)));
     }
 
     public async Task<NaitrustResponse<FrontendUserResponse>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default)
@@ -475,11 +475,11 @@ public class AuthService : IAuthService
 
     private static int ComputeKycLevel(NaitrustUser user)
     {
-        if (user.KycLevel.HasValue) return user.KycLevel.Value;
+        if (user.KycLevel.HasValue) { return user.KycLevel.Value; }
         var level = 0;
-        if (user.EmailVerifiedAt.HasValue) level = 1;
-        if (user.PhoneVerifiedAt.HasValue) level = 2;
-        if (user.IdentityVerifiedAt.HasValue) level = 3;
+        if (user.EmailVerifiedAt.HasValue) { level = 1; }
+        if (user.PhoneVerifiedAt.HasValue) { level = 2; }
+        if (user.IdentityVerifiedAt.HasValue) { level = 3; }
         return level;
     }
 

@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
+using System.Text;
+using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Naitrust.Domain.Configurations.ConfigModels;
@@ -41,7 +41,8 @@ public class ResendEmailProvider : IEmailProvider
             ReplyTo = replyTo
         };
 
-        var response = await _httpClient.PostAsJsonAsync("emails", payload, ct);
+        var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("emails", content, ct);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -55,22 +56,22 @@ public class ResendEmailProvider : IEmailProvider
 
     private sealed class ResendRequest
     {
-        [JsonPropertyName("from")]
+        [JsonProperty("from")]
         public string From { get; set; } = "";
 
-        [JsonPropertyName("to")]
+        [JsonProperty("to")]
         public string[] To { get; set; } = [];
 
-        [JsonPropertyName("subject")]
+        [JsonProperty("subject")]
         public string Subject { get; set; } = "";
 
-        [JsonPropertyName("html")]
+        [JsonProperty("html")]
         public string Html { get; set; } = "";
 
-        [JsonPropertyName("text")]
+        [JsonProperty("text")]
         public string Text { get; set; } = "";
 
-        [JsonPropertyName("reply_to")]
+        [JsonProperty("reply_to")]
         public string? ReplyTo { get; set; }
     }
 }

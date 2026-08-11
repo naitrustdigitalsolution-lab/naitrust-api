@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using System.Text.Json;
+using Newtonsoft.Json;
 using Naitrust.Application.ExternalServices.Communication;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
@@ -16,8 +16,6 @@ namespace Naitrust.Application.Services.Implementations.Invitations;
 public class InvitationService : IInvitationService
 {
     private readonly IUnitOfWork _unitOfWork;
-
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     public InvitationService(IUnitOfWork unitOfWork)
     {
@@ -225,7 +223,7 @@ public class InvitationService : IInvitationService
         {
             try
             {
-                var sections = JsonSerializer.Deserialize<List<AgreementSectionResponse>>(i.AgreementSnapshot, JsonOptions);
+                var sections = JsonConvert.DeserializeObject<List<AgreementSectionResponse>>(i.AgreementSnapshot);
                 if (sections is not null)
                 {
                     agreement = new AgreementSnapshotDto(sections);
@@ -236,7 +234,7 @@ public class InvitationService : IInvitationService
                 // Try as wrapper object
                 try
                 {
-                    agreement = JsonSerializer.Deserialize<AgreementSnapshotDto>(i.AgreementSnapshot, JsonOptions);
+                    agreement = JsonConvert.DeserializeObject<AgreementSnapshotDto>(i.AgreementSnapshot);
                 }
                 catch
                 {
@@ -272,7 +270,7 @@ public class InvitationService : IInvitationService
 
     private static string MaskPhone(string phone)
     {
-        if (phone.Length <= 4) return "****";
+        if (phone.Length <= 4) { return "****"; }
         return new string('*', phone.Length - 4) + phone[^4..];
     }
 }

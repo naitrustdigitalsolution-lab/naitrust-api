@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
     /// <summary>Get the current authenticated user's profile</summary>
     [HttpGet("me")]
     [Authorize]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse<FrontendUserResponse>))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<ProfileResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetMeAsync()
@@ -80,7 +80,7 @@ public class AuthController : ControllerBase
     /// <summary>Get the current authenticated user's profile</summary>
     [HttpGet("profile")]
     [Authorize]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse<FrontendUserResponse>))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<ProfileResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetProfileAsync()

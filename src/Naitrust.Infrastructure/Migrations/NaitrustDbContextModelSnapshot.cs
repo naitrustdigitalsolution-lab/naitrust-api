@@ -359,6 +359,64 @@ namespace Naitrust.Infrastructure.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.Beneficiary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccountNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFavourite")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("NaitrustAccountNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NaitrustId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NaitrustIdentifier")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Beneficiaries", (string)null);
+                });
+
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Business", b =>
                 {
                     b.Property<Guid>("Id")
@@ -867,7 +925,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasIndex("DealId");
 
-                    b.ToTable("DealMessages");
+                    b.ToTable("DealMessages", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.DealParty", b =>
@@ -989,7 +1047,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasIndex("DealId");
 
-                    b.ToTable("DealTerminations");
+                    b.ToTable("DealTerminations", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Dispute", b =>
@@ -1291,6 +1349,89 @@ namespace Naitrust.Infrastructure.Migrations
                     b.ToTable("IdempotencyKeys", (string)null);
                 });
 
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.InstantTransfer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AmountMinor")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("FeeMinor")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsMock")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Narration")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientAccountType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientBankName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientIdentifier")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("RecipientIdentityVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RecipientMethod")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientNaitrustAccountNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientNaitrustId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientResolvedName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InstantTransfers", (string)null);
+                });
+
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.LedgerEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1391,7 +1532,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LinkedBankAccounts");
+                    b.ToTable("LinkedBankAccounts", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.Milestone", b =>
@@ -1708,7 +1849,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasIndex("DealId");
 
-                    b.ToTable("Negotiations");
+                    b.ToTable("Negotiations", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.NegotiationProposal", b =>
@@ -1753,7 +1894,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasIndex("NegotiationId");
 
-                    b.ToTable("NegotiationProposals");
+                    b.ToTable("NegotiationProposals", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.NewsletterSubscriber", b =>
@@ -2088,6 +2229,57 @@ namespace Naitrust.Infrastructure.Migrations
                     b.HasIndex("VirtualAccountId");
 
                     b.ToTable("PaymentPartnerEvents", (string)null);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.PaymentRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AmountMinor")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RequestedFromName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaymentRequests", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.PayoutAccount", b =>
@@ -2429,6 +2621,41 @@ namespace Naitrust.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("TransactionTypes", (string)null);
+                });
+
+            modelBuilder.Entity("Naitrust.Domain.Models.Entities.UserCounterpartyPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CounterpartyUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFavourite")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserCounterpartyPreferences", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.VectorDocument", b =>
@@ -2894,7 +3121,7 @@ namespace Naitrust.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WalletActivities");
+                    b.ToTable("WalletActivities", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>

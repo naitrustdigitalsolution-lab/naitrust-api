@@ -60,8 +60,10 @@ public class WalletService : IWalletService
         Guid userId, AddLinkedBankAccountRequest request, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.BankCode) || string.IsNullOrWhiteSpace(request.AccountNumber))
+        {
             return NaitrustResponse<LinkedBankAccountResponse>.BadRequest(
                 "BankCode and AccountNumber are required.");
+        }
 
         // Validate via Anchor name enquiry
         PayoutAccountValidationResult validation;
@@ -157,6 +159,55 @@ public class WalletService : IWalletService
         await _unitOfWork.SaveChangesAsync();
 
         return NaitrustResponse<bool>.Success("Bank account removed.", true);
+    }
+
+    // ── Fund ──────────────────────────────────────────────────────────────────
+
+    public async Task<NaitrustResponse<WalletAccountResponse>> FundAsync(
+        Guid userId, FundWalletRequest request, CancellationToken ct = default)
+    {
+        if (request.AmountMinor <= 0)
+            return NaitrustResponse<WalletAccountResponse>.BadRequest("Funding amount must be greater than zero.");
+
+        if (request.AmountMinor > AccountLimitMinor)
+            return NaitrustResponse<WalletAccountResponse>.BadRequest(
+                $"Amount exceeds the single-transaction limit of ₦{AccountLimitMinor / 100m:N2}.");
+
+        // Verify bank account belongs to user
+        var bankRepo = _unitOfWork.GetRepository<LinkedBankAccount>();
+        var bankAccount = await bankRepo.GetByIdAsync(request.LinkedBankAccountId);
+
+        if (bankAccount is null || bankAccount.IsDeleted || bankAccount.UserId != userId)
+            return NaitrustResponse<WalletAccountResponse>.NotFound("Linked bank account not found.");
+
+        // Verify wallet exists
+        var vaRepo = _unitOfWork.GetRepository<VirtualAccount>();
+        var wallet = await vaRepo.GetSingleByAsync(
+            va => va.UserId == userId && va.Type == VirtualAccountType.Settlement && !va.IsDeleted);
+
+        if (wallet is null)
+            return NaitrustResponse<WalletAccountResponse>.BadRequest(
+                "Wallet not set up. Please complete KYC first.");
+
+        // Record as a pending funding activity; the actual credit arrives via Anchor inbound webhook
+        var activityRepo = _unitOfWork.GetRepository<WalletActivity>();
+        await activityRepo.AddAsync(new WalletActivity
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Kind = "funding_requested",
+            AmountMinor = request.AmountMinor,
+            Currency = wallet.Currency,
+            Description = $"Funding request from {bankAccount.BankName} ···· {bankAccount.AccountNumber[^4..]}",
+            IsActive = true
+        });
+
+        await _unitOfWork.SaveChangesAsync();
+
+        var response = await BuildWalletResponseAsync(wallet, userId, ct);
+        return NaitrustResponse<WalletAccountResponse>.Success(
+            "Funding request recorded. Transfer the amount to your Naitrust virtual account to complete funding.",
+            response);
     }
 
     // ── Withdraw ──────────────────────────────────────────────────────────────
@@ -313,6 +364,10 @@ public class WalletService : IWalletService
             .Where(a => a.Kind is "withdrawal" or "protected_allocation")
             .Sum(a => a.AmountMinor);
 
+        var pendingMinor = actList
+            .Where(a => a.Kind is "funding_requested")
+            .Sum(a => a.AmountMinor);
+
         VirtualAccountInfoDto? vaInfo = null;
         if (!string.IsNullOrEmpty(wallet.AccountNumber))
         {
@@ -326,7 +381,7 @@ public class WalletService : IWalletService
             Id: wallet.Id,
             OwnerUserId: userId,
             BusinessId: wallet.BusinessId,
-            Balance: new WalletBalanceDto(availableMinor, PendingMinor: 0, protectedMinor, wallet.Currency),
+            Balance: new WalletBalanceDto(availableMinor, pendingMinor, protectedMinor, wallet.Currency),
             TotalInflowMinor: totalInflowMinor,
             TotalOutflowMinor: totalOutflowMinor,
             AccountLimitMinor: AccountLimitMinor,

@@ -21,6 +21,9 @@ public interface IWalletService
     /// <summary>Removes a linked bank account.</summary>
     Task<NaitrustResponse<bool>> RemoveLinkedBankAccountAsync(Guid userId, Guid accountId, CancellationToken ct = default);
 
+    /// <summary>Records a pending funding request against the user's linked bank account.</summary>
+    Task<NaitrustResponse<WalletAccountResponse>> FundAsync(Guid userId, FundWalletRequest request, CancellationToken ct = default);
+
     /// <summary>Withdraws funds from the user's wallet subledger to their linked bank account via NIP.</summary>
     Task<NaitrustResponse<WalletAccountResponse>> WithdrawAsync(Guid userId, WithdrawRequest request, CancellationToken ct = default);
 

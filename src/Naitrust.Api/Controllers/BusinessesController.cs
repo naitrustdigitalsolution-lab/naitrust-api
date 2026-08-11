@@ -66,6 +66,7 @@ public class BusinessesController : ControllerBase
 
     /// <summary>Update a business profile</summary>
     [HttpPatch("{id:guid}")]
+    [HttpPut("{id:guid}")]
     [ProducesResponseType(200, Type = typeof(NaitrustResponse<BusinessResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]

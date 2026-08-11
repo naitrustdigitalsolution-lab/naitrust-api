@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Naitrust.Application.ExternalServices;
 using Naitrust.Application.ExternalServices.Anchor;
 using Naitrust.Application.ExternalServices.Communication;
+using Naitrust.Application.ExternalServices.QoreId;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Security;
@@ -22,6 +23,7 @@ public class SecurityService : ISecurityService
     private readonly IEmailService _emailService;
     private readonly IPasswordHasher<NaitrustUser> _passwordHasher;
     private readonly AnchorPaymentPartner _anchor;
+    private readonly IVerificationProvider _qoreId;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<SecurityService> _logger;
 
@@ -31,16 +33,18 @@ public class SecurityService : ISecurityService
         IEmailService emailService,
         IPasswordHasher<NaitrustUser> passwordHasher,
         AnchorPaymentPartner anchor,
+        IVerificationProvider qoreId,
         IUnitOfWork unitOfWork,
         ILogger<SecurityService> logger)
     {
-        _userManager = userManager;
-        _cacheService = cacheService;
-        _emailService = emailService;
+        _userManager    = userManager;
+        _cacheService   = cacheService;
+        _emailService   = emailService;
         _passwordHasher = passwordHasher;
-        _anchor = anchor;
-        _unitOfWork = unitOfWork;
-        _logger = logger;
+        _anchor         = anchor;
+        _qoreId         = qoreId;
+        _unitOfWork     = unitOfWork;
+        _logger         = logger;
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -227,7 +231,23 @@ public class SecurityService : ISecurityService
         if (!DateOnly.TryParse(request.Dob, out _))
             return NaitrustResponse<bool>.BadRequest("Dob must be a valid date in YYYY-MM-DD format.");
 
-        // ── 2. Create Anchor customer (idempotent — skip if already exists) ───
+        // ── 2. QoreID BVN verification ────────────────────────────────────────
+        var bvnResult = await _qoreId.VerifyBvnAsync(new QoreIdBvnRequest(
+            BvnNumber: request.Bvn,
+            FirstName: request.FirstName.Trim(),
+            LastName:  request.LastName.Trim(),
+            Dob:       request.Dob,
+            Gender:    request.Gender), ct);
+
+        if (!bvnResult.Verified)
+        {
+            _logger.LogWarning("QoreID BVN verification failed for user {UserId}: {Reason}", user.Id, bvnResult.ErrorMessage);
+            return NaitrustResponse<bool>.BadRequest(bvnResult.ErrorMessage ?? "BVN verification failed.");
+        }
+
+        _logger.LogInformation("QoreID BVN verified for user {UserId}", user.Id);
+
+        // ── 4. Create Anchor customer (idempotent — skip if already exists) ───
         if (string.IsNullOrEmpty(user.AnchorCustomerId))
         {
             try
@@ -253,7 +273,7 @@ public class SecurityService : ISecurityService
             }
         }
 
-        // ── 3. Create permanent wallet subledger (idempotent — skip if exists) ─
+        // ── 5. Create permanent wallet subledger (idempotent — skip if exists) ─
         var walletRepo = _unitOfWork.GetRepository<VirtualAccount>();
         var existingWallet = await walletRepo.GetSingleByAsync(
             va => va.UserId == user.Id && va.Type == VirtualAccountType.Settlement);
@@ -301,7 +321,7 @@ public class SecurityService : ISecurityService
             }
         }
 
-        // ── 4. Mark user as KYC Level 1 ───────────────────────────────────────
+        // ── 6. Mark user as KYC Level 1 ───────────────────────────────────────
         user.KycLevel = 1;
         user.IdentityVerifiedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
@@ -341,21 +361,41 @@ public class SecurityService : ISecurityService
             return NaitrustResponse<bool>.BadRequest(
                 "No business found for this account. Please complete business registration first.");
 
-        // ── 3. Queue for manual/admin review (CAC verification via QoreId — TODO: wire QoreId) ──
-        // For now: record submission and mark as pending review.
-        // QoreId CAC + BVN director verification will be added when QoreId adapter is wired.
-        _logger.LogInformation(
-            "Business KYC submitted for user {UserId}, business {BusinessId}, RC: {RC}",
-            user.Id, business.Id, request.RcNumber);
+        // ── 3. QoreID CAC verification ────────────────────────────────────────
+        var cacResult = await _qoreId.VerifyCacAsync(new QoreIdCacRequest(request.RcNumber.Trim()), ct);
 
-        // ── 4. Mark KYC as level 1 pending review ─────────────────────────────
-        // Business KYC requires manual review — do not set IdentityVerifiedAt yet.
-        user.KycLevel = 1;
-        user.UpdatedAt = DateTime.UtcNow;
+        if (!cacResult.Verified)
+        {
+            _logger.LogWarning("QoreID CAC verification failed for user {UserId}, RC {RC}: {Reason}",
+                user.Id, request.RcNumber, cacResult.ErrorMessage);
+            return NaitrustResponse<bool>.BadRequest(cacResult.ErrorMessage ?? "CAC verification failed.");
+        }
+
+        _logger.LogInformation("QoreID CAC verified for user {UserId}: {CompanyName}", user.Id, cacResult.CompanyName);
+
+        // ── 4. QoreID Director BVN verification ───────────────────────────────
+        var directorBvnResult = await _qoreId.VerifyBvnAsync(new QoreIdBvnRequest(
+            BvnNumber: request.DirectorBvn!.Trim(),
+            FirstName: request.DirectorFirstName!.Trim(),
+            LastName:  request.DirectorLastName!.Trim()), ct);
+
+        if (!directorBvnResult.Verified)
+        {
+            _logger.LogWarning("QoreID director BVN failed for user {UserId}: {Reason}",
+                user.Id, directorBvnResult.ErrorMessage);
+            return NaitrustResponse<bool>.BadRequest(
+                directorBvnResult.ErrorMessage ?? "Director BVN verification failed.");
+        }
+
+        _logger.LogInformation("QoreID director BVN verified for user {UserId}", user.Id);
+
+        // ── 5. Mark KYC as level 1 ────────────────────────────────────────────
+        user.KycLevel          = 1;
+        user.IdentityVerifiedAt = DateTime.UtcNow;
+        user.UpdatedAt          = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
 
-        return NaitrustResponse<bool>.Success(
-            "Business KYC submission received. Our team will review and update your status within 24 hours.", true);
+        return NaitrustResponse<bool>.Success("Business identity verified successfully.", true);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -435,7 +475,7 @@ public class SecurityService : ISecurityService
         foreach (var c in input)
         {
             var val = alphabet.IndexOf(c);
-            if (val < 0) continue;
+            if (val < 0) { continue; }
             buffer = (buffer << 5) | val;
             bitsLeft += 5;
             if (bitsLeft >= 8) { bitsLeft -= 8; output[idx++] = (byte)(buffer >> bitsLeft); }
@@ -452,7 +492,9 @@ public class SecurityService : ISecurityService
         for (var t = timestamp - 1; t <= timestamp + 1; t++)
         {
             if (ComputeTotp(secretBytes, t) == code.Trim())
+            {
                 return true;
+            }
         }
         return false;
     }
@@ -460,7 +502,7 @@ public class SecurityService : ISecurityService
     private static string ComputeTotp(byte[] secret, long counter)
     {
         var counterBytes = BitConverter.GetBytes(counter);
-        if (BitConverter.IsLittleEndian) Array.Reverse(counterBytes);
+        if (BitConverter.IsLittleEndian) { Array.Reverse(counterBytes); }
 
         using var hmac = new HMACSHA1(secret);
         var hash = hmac.ComputeHash(counterBytes);

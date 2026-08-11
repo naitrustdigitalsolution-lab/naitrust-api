@@ -3,7 +3,7 @@ namespace Naitrust.Domain.Models.Dtos.Responses.Invitations;
 public record InvitationListItemResponse(
     Guid Id,
     Guid TransactionId,
-    string FromName,
+    string InviterName,
     string YourRole,
     string Title,
     long AmountMinor,

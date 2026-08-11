@@ -17,4 +17,10 @@ public record PendingBusinessDataInput(
     string? Address,
     string? City,
     string? State,
-    string? Country);
+    string? Country,
+    string? Description,
+    string? Email,
+    string? PhoneNumber,
+    string? Website,
+    string? SocialHandles,
+    string? VerificationType);

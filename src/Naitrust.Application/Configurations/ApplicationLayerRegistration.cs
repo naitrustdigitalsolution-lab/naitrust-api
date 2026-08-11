@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Naitrust.Application.ExternalServices;
 using Naitrust.Application.ExternalServices.CacheServices;
 using Naitrust.Application.ExternalServices.Communication;
+using Naitrust.Application.ExternalServices.Storage;
+using Naitrust.Application.ExternalServices.QoreId;
 using Naitrust.Application.ExternalServices.Communication.Resend;
 using Naitrust.Application.ExternalServices.Anchor;
 using Naitrust.Application.ExternalServices.Providus;
@@ -24,6 +26,11 @@ using Naitrust.Application.Services.Implementations.Security;
 using Naitrust.Application.Services.Implementations.Transactions;
 using Naitrust.Application.Services.Implementations.Users;
 using Naitrust.Application.Services.Implementations.Verification;
+using Naitrust.Application.Services.Implementations.InstantTransfers;
+using Naitrust.Application.Services.Implementations.Beneficiaries;
+using Naitrust.Application.Services.Implementations.PaymentRequests;
+using Naitrust.Application.Services.Implementations.Counterparties;
+using Naitrust.Application.Services.Implementations.TrustProfile;
 using Naitrust.Application.Services.Interfaces;
 
 namespace Naitrust.Application.Configurations;
@@ -44,6 +51,13 @@ public static class ApplicationLayerRegistration
         // Payment partners: provider → factory
         services.AddHttpClient<AnchorPaymentPartner>();
         services.AddScoped<IPaymentPartnerFactory, PaymentPartnerFactory>();
+
+        // Storage
+        services.AddScoped<IStorageService, S3StorageService>();
+
+        // QoreID identity verification
+        services.AddHttpClient<QoreIdVerificationProvider>();
+        services.AddScoped<IVerificationProvider, QoreIdVerificationProvider>();
 
         // Auth
         services.AddScoped<IAuthService, AuthService>();
@@ -108,6 +122,21 @@ public static class ApplicationLayerRegistration
 
         // Public
         services.AddScoped<IPublicFormService, PublicFormService>();
+
+        // Instant Transfers
+        services.AddScoped<IInstantTransferService, InstantTransferService>();
+
+        // Beneficiaries
+        services.AddScoped<IBeneficiaryService, BeneficiaryService>();
+
+        // Payment Requests
+        services.AddScoped<IPaymentRequestService, PaymentRequestService>();
+
+        // Counterparties
+        services.AddScoped<ICounterpartyService, CounterpartyService>();
+
+        // Trust Profile
+        services.AddScoped<ITrustProfileService, TrustProfileService>();
 
         return services;
     }

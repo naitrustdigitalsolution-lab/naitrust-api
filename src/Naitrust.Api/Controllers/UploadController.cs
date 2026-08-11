@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Naitrust.Application.ExternalServices;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Responses.Upload;
 
@@ -11,31 +12,30 @@ namespace Naitrust.Api.Controllers;
 [Authorize]
 public class UploadController : ControllerBase
 {
-    /// <summary>Upload a file and receive a URL reference</summary>
-    [HttpPost]
+    private readonly IStorageService _storage;
+
+    public UploadController(IStorageService storage)
+    {
+        _storage = storage;
+    }
+
+    /// <summary>Upload a verification document and receive a URL reference</summary>
+    [HttpPost("verification-document")]
     [ProducesResponseType(200, Type = typeof(NaitrustResponse<UploadResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
-    public async Task<IActionResult> UploadAsync(IFormFile file)
+    public async Task<IActionResult> UploadAsync(IFormFile file, CancellationToken ct)
     {
         if (file is null || file.Length == 0)
         {
-            var badResponse = NaitrustResponse<UploadResponse>.BadRequest("No file provided.");
-            return StatusCode((int)badResponse.StatusCode, badResponse);
+            var bad = NaitrustResponse<UploadResponse>.BadRequest("No file provided.");
+            return StatusCode((int)bad.StatusCode, bad);
         }
 
-        // TODO: Replace with cloud storage (S3, Azure Blob, etc.)
-        var fileId = Guid.NewGuid().ToString("N");
-        var uploadsDir = Path.Combine(Path.GetTempPath(), "naitrust-uploads");
-        Directory.CreateDirectory(uploadsDir);
+        await using var stream = file.OpenReadStream();
+        var url = await _storage.UploadFileAsync(stream, file.FileName, file.ContentType, ct);
 
-        var extension = Path.GetExtension(file.FileName);
-        var filePath = Path.Combine(uploadsDir, $"{fileId}{extension}");
-
-        await using var stream = new FileStream(filePath, FileMode.Create);
-        await file.CopyToAsync(stream);
-
-        var url = $"/uploads/{fileId}{extension}";
+        var fileId = Path.GetFileNameWithoutExtension(url.Split('/').Last());
         var response = NaitrustResponse<UploadResponse>.Success("File uploaded successfully.", new UploadResponse(url, fileId));
         return StatusCode((int)response.StatusCode, response);
     }

@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 using Microsoft.Extensions.Options;
 using Naitrust.Application.ExternalServices;
 using Naitrust.Application.ExternalServices.Anchor;
@@ -412,8 +412,7 @@ public class AdminService : IAdminService
         if (string.IsNullOrWhiteSpace(json)) return new List<AgreementSectionResponse>();
         try
         {
-            return JsonSerializer.Deserialize<List<AgreementSectionResponse>>(json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            return JsonConvert.DeserializeObject<List<AgreementSectionResponse>>(json)
                 ?? new List<AgreementSectionResponse>();
         }
         catch

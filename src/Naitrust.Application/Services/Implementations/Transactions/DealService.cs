@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 using Microsoft.AspNetCore.Identity;
 using Naitrust.Application.Services.Implementations.Invitations;
 using Naitrust.Application.Services.Interfaces;
@@ -173,7 +173,7 @@ public class DealService : IDealService
             string? sectionsJson = null;
             if (request.Agreement.Sections is not null && request.Agreement.Sections.Count > 0)
             {
-                sectionsJson = JsonSerializer.Serialize(request.Agreement.Sections);
+                sectionsJson = JsonConvert.SerializeObject(request.Agreement.Sections);
             }
 
             var agreement = new Agreement
@@ -398,8 +398,7 @@ public class DealService : IDealService
         if (string.IsNullOrWhiteSpace(json)) return new List<AgreementSectionResponse>();
         try
         {
-            return JsonSerializer.Deserialize<List<AgreementSectionResponse>>(json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            return JsonConvert.DeserializeObject<List<AgreementSectionResponse>>(json)
                 ?? new List<AgreementSectionResponse>();
         }
         catch

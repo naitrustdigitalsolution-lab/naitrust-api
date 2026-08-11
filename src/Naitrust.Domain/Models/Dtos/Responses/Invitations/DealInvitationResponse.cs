@@ -12,7 +12,7 @@ public record DealInvitationResponse(
     Guid? InviterProfileId,
     Guid? InviteeProfileId,
     string? PostAuthDestination,
-    string FromName,
+    string InviterName,
     string FromRole,
     string YourRole,
     string PartyMode,
@@ -26,4 +26,4 @@ public record DealInvitationResponse(
     DateTime ExpiresAt,
     DateTime CreatedAt);
 
-public record AgreementSnapshotDto(List<AgreementSectionResponse> Sections);
+public record AgreementSnapshotDto(List<AgreementSectionResponse> Sections, int Version = 1, bool GeneratedByAi = false);
