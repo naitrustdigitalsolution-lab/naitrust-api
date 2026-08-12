@@ -12,7 +12,7 @@ public static class SignalRConfiguration
 
     public static WebApplication MapSignalRHubs(this WebApplication app)
     {
-        app.MapHub<TransactionHub>("/hubs/transactions");
+        app.MapHub<DealHub>("/hubs/transactions");
         app.MapHub<VerificationHub>("/hubs/verification");
         app.MapHub<NotificationHub>("/hubs/notifications");
         return app;

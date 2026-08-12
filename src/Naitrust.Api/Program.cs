@@ -7,16 +7,27 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway sets PORT env var
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+// Railway sets PORT env var — only override URLs when deployed
+var port = Environment.GetEnvironmentVariable("PORT");
+if (port is not null)
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 
 
 // Serilog
 builder.AddSerilogLogging();
 
 // All services (Infrastructure + Application + API-level)
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver =
+            new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+        options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAllServices(builder.Configuration);
 

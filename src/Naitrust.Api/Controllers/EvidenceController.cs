@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Evidence;
+using Naitrust.Domain.Models.Dtos.Responses.Evidence;
 
 namespace Naitrust.Api.Controllers;
 
@@ -21,11 +22,9 @@ public class EvidenceController : ControllerBase
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Upload evidence for a transaction
-    /// </summary>
+    /// <summary>Upload evidence for a transaction</summary>
     [HttpPost("transactions/{id:guid}/evidence")]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<EvidenceFileResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -35,11 +34,9 @@ public class EvidenceController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// List evidence files for a transaction
-    /// </summary>
+    /// <summary>List all evidence files for a transaction</summary>
     [HttpGet("transactions/{id:guid}/evidence")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<List<EvidenceFileResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ListByTransactionAsync(Guid id)
@@ -48,11 +45,9 @@ public class EvidenceController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get evidence by ID
-    /// </summary>
+    /// <summary>Get an evidence file by ID</summary>
     [HttpGet("evidence/{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<EvidenceFileResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetByIdAsync(Guid id)

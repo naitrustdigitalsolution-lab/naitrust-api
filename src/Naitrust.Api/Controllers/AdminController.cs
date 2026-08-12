@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Admin;
+using Naitrust.Domain.Models.Dtos.Responses.Admin;
+using Naitrust.Domain.Models.Dtos.Responses.Disputes;
+using Naitrust.Domain.Models.Dtos.Responses.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Verification;
 
 namespace Naitrust.Api.Controllers;
 
@@ -18,38 +22,32 @@ public class AdminController : ControllerBase
         _adminService = adminService;
     }
 
-    /// <summary>
-    /// List all transactions (admin)
-    /// </summary>
+    /// <summary>List all transactions (admin)</summary>
     [HttpGet("transactions")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaginatedResponse<DealResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ListTransactionsAsync([FromQuery] PaginationRequest pagination)
     {
-        var response = await _adminService.GetTransactionsAsync(pagination);
+        var response = await _adminService.GetDealsAsync(pagination);
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get a transaction by ID (admin)
-    /// </summary>
+    /// <summary>Get a transaction by ID (admin)</summary>
     [HttpGet("transactions/{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetTransactionAsync(Guid id)
     {
-        var response = await _adminService.GetTransactionAsync(id);
+        var response = await _adminService.GetDealAsync(id);
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// List all disputes (admin)
-    /// </summary>
+    /// <summary>List all disputes (admin)</summary>
     [HttpGet("disputes")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaginatedResponse<DisputeResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ListDisputesAsync([FromQuery] PaginationRequest pagination)
@@ -58,11 +56,9 @@ public class AdminController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Resolve a dispute (admin)
-    /// </summary>
+    /// <summary>Resolve a dispute with an admin decision (approve, reject, escalate)</summary>
     [HttpPatch("disputes/{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DisputeResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
@@ -73,11 +69,9 @@ public class AdminController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// List all verifications (admin)
-    /// </summary>
+    /// <summary>List all verification requests (admin)</summary>
     [HttpGet("verifications")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaginatedResponse<VerificationRequestResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> ListVerificationsAsync([FromQuery] PaginationRequest pagination)
@@ -86,11 +80,9 @@ public class AdminController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Update a verification request (admin)
-    /// </summary>
+    /// <summary>Update a verification request status (approve, reject, request more info)</summary>
     [HttpPatch("verifications/{id:guid}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<VerificationRequestResponse>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
@@ -101,11 +93,22 @@ public class AdminController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Get system audit logs (admin)
-    /// </summary>
+    /// <summary>Provision the platform's central escrow subledger on Anchor (one-time setup, idempotent)</summary>
+    [HttpPost("platform/escrow")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<EscrowSetupResponse>))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<EscrowSetupResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> SetupPlatformEscrowAsync()
+    {
+        var response = await _adminService.SetupPlatformEscrowAsync();
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>Get system audit logs (admin)</summary>
     [HttpGet("audit-logs")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<PaginatedResponse<AuditLogResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetAuditLogsAsync([FromQuery] PaginationRequest pagination)

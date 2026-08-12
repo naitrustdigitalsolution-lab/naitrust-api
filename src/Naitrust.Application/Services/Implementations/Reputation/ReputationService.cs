@@ -40,12 +40,12 @@ public class ReputationService : IReputationService
             return NaitrustResponse<ReviewResponse>.BadRequest("Rating must be between 1 and 5.");
         }
 
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
-        var transaction = await transactionRepo.GetByIdAsync(request.TransactionId);
+        var dealRepo = _unitOfWork.GetRepository<Deal>();
+        var deal = await dealRepo.GetByIdAsync(request.TransactionId);
 
-        if (transaction is null || transaction.IsDeleted)
+        if (deal is null || deal.IsDeleted)
         {
-            return NaitrustResponse<ReviewResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<ReviewResponse>.NotFound("Deal not found.");
         }
 
         var reviewRepo = _unitOfWork.GetRepository<Review>();
@@ -65,9 +65,9 @@ public class ReputationService : IReputationService
             TransactionId = request.TransactionId,
             ReviewerUserId = userId,
             RevieweeSubjectType = SubjectType.User,
-            RevieweeSubjectId = transaction.CreatedByUserId == userId
-                ? transaction.CreatedByUserId // Fallback: in a real scenario, get the counterparty
-                : transaction.CreatedByUserId,
+            RevieweeSubjectId = deal.CreatedByUserId == userId
+                ? deal.CreatedByUserId // Fallback: in a real scenario, get the counterparty
+                : deal.CreatedByUserId,
             Rating = request.Rating,
             Comment = request.Comment,
             CreatedAt = DateTime.UtcNow

@@ -15,6 +15,16 @@ public class NaitrustUser : IdentityUser<Guid>
     public DateTime? LastTransactionActivityAt { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
+    public string? Bio { get; set; }
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? State { get; set; }
+    public string? Country { get; set; }
+    public string? Avatar { get; set; }
+    public int? KycLevel { get; set; }
+    public string? PinHash { get; set; }
+    public string? TotpSecret { get; set; }
+    public string? AnchorCustomerId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; }
 }

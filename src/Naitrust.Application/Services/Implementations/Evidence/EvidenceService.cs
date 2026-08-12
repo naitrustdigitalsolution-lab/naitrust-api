@@ -24,12 +24,12 @@ public class EvidenceService : IEvidenceService
             return NaitrustResponse<EvidenceFileResponse>.BadRequest($"Invalid evidence type: {request.Type}");
         }
 
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
-        var transaction = await transactionRepo.GetByIdAsync(request.TransactionId);
+        var dealRepo = _unitOfWork.GetRepository<Deal>();
+        var deal = await dealRepo.GetByIdAsync(request.TransactionId);
 
-        if (transaction is null || transaction.IsDeleted)
+        if (deal is null || deal.IsDeleted)
         {
-            return NaitrustResponse<EvidenceFileResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<EvidenceFileResponse>.NotFound("Deal not found.");
         }
 
         var repo = _unitOfWork.GetRepository<EvidenceFile>();

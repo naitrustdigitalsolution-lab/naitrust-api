@@ -17,7 +17,7 @@ public class ReleaseRequestConfiguration : IEntityTypeConfiguration<ReleaseReque
 
         builder.HasIndex(x => x.TransactionId);
 
-        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Deal>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
     }
 }

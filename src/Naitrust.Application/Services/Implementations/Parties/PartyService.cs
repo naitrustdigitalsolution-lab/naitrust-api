@@ -16,15 +16,15 @@ public class PartyService : IPartyService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<NaitrustResponse<TransactionPartyResponse>> CreatePartyAsync(Guid transactionId, Guid userId, CancellationToken ct = default)
+    public async Task<NaitrustResponse<DealPartyResponse>> CreatePartyAsync(Guid dealId, Guid userId, CancellationToken ct = default)
     {
-        var partyRepo = _unitOfWork.GetRepository<TransactionParty>();
-        var transactionRepo = _unitOfWork.GetRepository<Transaction>();
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
+        var dealRepo = _unitOfWork.GetRepository<Deal>();
 
-        var transaction = await transactionRepo.GetByIdAsync(transactionId);
-        if (transaction is null || transaction.IsDeleted)
+        var deal = await dealRepo.GetByIdAsync(dealId);
+        if (deal is null || deal.IsDeleted)
         {
-            return NaitrustResponse<TransactionPartyResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<DealPartyResponse>.NotFound("Deal not found.");
         }
 
         // Attempt to look up user display name
@@ -36,66 +36,66 @@ public class PartyService : IPartyService
             displayName = $"{user.FirstName} {user.LastName}".Trim();
         }
 
-        var party = new TransactionParty
+        var party = new DealParty
         {
             Id = Guid.NewGuid(),
-            TransactionId = transactionId,
+            DealId = dealId,
             UserId = userId,
             PartyType = PartyType.Buyer,
-            PartyMode = transaction.PartyMode,
+            PartyMode = deal.PartyMode,
             DisplayName = displayName,
             Email = user?.Email,
-            Status = TransactionPartyStatus.Invited,
+            Status = DealPartyStatus.Invited,
             IsActive = true
         };
 
         await partyRepo.AddAsync(party);
         await _unitOfWork.SaveChangesAsync();
 
-        return NaitrustResponse<TransactionPartyResponse>.Created(
+        return NaitrustResponse<DealPartyResponse>.Created(
             "Party created successfully.",
             MapToPartyResponse(party));
     }
 
-    public async Task<NaitrustResponse<TransactionPartyResponse>> GetPartyAsync(Guid partyId, CancellationToken ct = default)
+    public async Task<NaitrustResponse<DealPartyResponse>> GetPartyAsync(Guid partyId, CancellationToken ct = default)
     {
-        var partyRepo = _unitOfWork.GetRepository<TransactionParty>();
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
         var party = await partyRepo.GetByIdAsync(partyId);
 
         if (party is null || party.IsDeleted)
         {
-            return NaitrustResponse<TransactionPartyResponse>.NotFound("Party not found.");
+            return NaitrustResponse<DealPartyResponse>.NotFound("Party not found.");
         }
 
-        return NaitrustResponse<TransactionPartyResponse>.Success(
+        return NaitrustResponse<DealPartyResponse>.Success(
             "Party retrieved successfully.",
             MapToPartyResponse(party));
     }
 
-    public async Task<NaitrustResponse<List<TransactionPartyResponse>>> GetPartiesByTransactionAsync(Guid transactionId, CancellationToken ct = default)
+    public async Task<NaitrustResponse<List<DealPartyResponse>>> GetPartiesByDealAsync(Guid dealId, CancellationToken ct = default)
     {
-        var partyRepo = _unitOfWork.GetRepository<TransactionParty>();
-        var parties = await partyRepo.GetAllDataAsync(p => p.TransactionId == transactionId && !p.IsDeleted);
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
+        var parties = await partyRepo.GetAllDataAsync(p => p.DealId == dealId && !p.IsDeleted);
 
         var responses = parties.Select(MapToPartyResponse).ToList();
 
-        return NaitrustResponse<List<TransactionPartyResponse>>.Success(
+        return NaitrustResponse<List<DealPartyResponse>>.Success(
             "Parties retrieved successfully.",
             responses);
     }
 
-    public async Task<NaitrustResponse<TransactionPartyResponse>> ResolvePartyAsync(Guid partyId, Guid userId, CancellationToken ct = default)
+    public async Task<NaitrustResponse<DealPartyResponse>> ResolvePartyAsync(Guid partyId, Guid userId, CancellationToken ct = default)
     {
-        var partyRepo = _unitOfWork.GetRepository<TransactionParty>();
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
         var party = await partyRepo.GetByIdAsync(partyId);
 
         if (party is null || party.IsDeleted)
         {
-            return NaitrustResponse<TransactionPartyResponse>.NotFound("Party not found.");
+            return NaitrustResponse<DealPartyResponse>.NotFound("Party not found.");
         }
 
         party.UserId = userId;
-        party.Status = TransactionPartyStatus.Accepted;
+        party.Status = DealPartyStatus.Accepted;
         party.AcceptedAt = DateTime.UtcNow;
         party.UpdatedAt = DateTime.UtcNow;
 
@@ -114,14 +114,14 @@ public class PartyService : IPartyService
         await partyRepo.UpdateAsync(party);
         await _unitOfWork.SaveChangesAsync();
 
-        return NaitrustResponse<TransactionPartyResponse>.Success(
+        return NaitrustResponse<DealPartyResponse>.Success(
             "Party resolved successfully.",
             MapToPartyResponse(party));
     }
 
-    private static TransactionPartyResponse MapToPartyResponse(TransactionParty party)
+    private static DealPartyResponse MapToPartyResponse(DealParty party)
     {
-        return new TransactionPartyResponse(
+        return new DealPartyResponse(
             party.Id,
             party.UserId,
             party.BusinessId,

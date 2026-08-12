@@ -7,9 +7,9 @@ public class ReportConcernRequestValidator : AbstractValidator<ReportConcernRequ
 {
     public ReportConcernRequestValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Name).MaximumLength(200).When(x => x.Name is not null);
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(320);
-        RuleFor(x => x.Category).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Description).NotEmpty().MaximumLength(5000);
+        RuleFor(x => x.Category).MaximumLength(100).When(x => x.Category is not null);
+        RuleFor(x => x.Description).MaximumLength(5000).When(x => x.Description is not null);
     }
 }

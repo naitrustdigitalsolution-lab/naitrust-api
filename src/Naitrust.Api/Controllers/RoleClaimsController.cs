@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Roles;
+using Naitrust.Domain.Models.Dtos.Responses.Roles;
 
 namespace Naitrust.Api.Controllers;
 
@@ -18,11 +19,9 @@ public class RoleClaimsController : ControllerBase
         _roleClaimService = roleClaimService;
     }
 
-    /// <summary>
-    /// Get all claims for a role
-    /// </summary>
+    /// <summary>Get all claims assigned to a role</summary>
     [HttpGet("{role}")]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<List<RoleClaimResponse>>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> GetClaimsByRoleAsync(string role)
@@ -31,11 +30,9 @@ public class RoleClaimsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Add a claim to a role
-    /// </summary>
+    /// <summary>Add a claim to a role</summary>
     [HttpPost]
-    [ProducesResponseType(201, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<bool>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -46,11 +43,9 @@ public class RoleClaimsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Update a claim on a role
-    /// </summary>
+    /// <summary>Update a claim on a role</summary>
     [HttpPut]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<bool>))]
     [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
@@ -60,11 +55,9 @@ public class RoleClaimsController : ControllerBase
         return StatusCode((int)response.StatusCode, response);
     }
 
-    /// <summary>
-    /// Remove a claim from a role
-    /// </summary>
+    /// <summary>Remove a claim from a role</summary>
     [HttpDelete]
-    [ProducesResponseType(200, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<bool>))]
     [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
     [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
     public async Task<IActionResult> RemoveClaimAsync([FromBody] RoleClaimRequest request)

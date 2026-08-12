@@ -6,22 +6,22 @@ namespace Naitrust.Application.Services.Interfaces;
 public interface IPartyService
 {
     /// <summary>
-    /// Creates a new transaction party record linking a user to a transaction.
+    /// Creates a new deal party record linking a user to a deal.
     /// </summary>
-    Task<NaitrustResponse<TransactionPartyResponse>> CreatePartyAsync(Guid transactionId, Guid userId, CancellationToken ct = default);
+    Task<NaitrustResponse<DealPartyResponse>> CreatePartyAsync(Guid dealId, Guid userId, CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves a transaction party by its unique identifier.
+    /// Retrieves a deal party by its unique identifier.
     /// </summary>
-    Task<NaitrustResponse<TransactionPartyResponse>> GetPartyAsync(Guid partyId, CancellationToken ct = default);
+    Task<NaitrustResponse<DealPartyResponse>> GetPartyAsync(Guid partyId, CancellationToken ct = default);
 
     /// <summary>
-    /// Lists all parties associated with a given transaction.
+    /// Lists all parties associated with a given deal.
     /// </summary>
-    Task<NaitrustResponse<List<TransactionPartyResponse>>> GetPartiesByTransactionAsync(Guid transactionId, CancellationToken ct = default);
+    Task<NaitrustResponse<List<DealPartyResponse>>> GetPartiesByDealAsync(Guid dealId, CancellationToken ct = default);
 
     /// <summary>
     /// Resolves a party's identity by linking them to an existing user account.
     /// </summary>
-    Task<NaitrustResponse<TransactionPartyResponse>> ResolvePartyAsync(Guid partyId, Guid userId, CancellationToken ct = default);
+    Task<NaitrustResponse<DealPartyResponse>> ResolvePartyAsync(Guid partyId, Guid userId, CancellationToken ct = default);
 }

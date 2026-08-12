@@ -1,3 +1,6 @@
+using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Identity;
 using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Businesses;
@@ -11,10 +14,12 @@ namespace Naitrust.Application.Services.Implementations.Businesses;
 public class BusinessService : IBusinessService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly UserManager<NaitrustUser> _userManager;
 
-    public BusinessService(IUnitOfWork unitOfWork)
+    public BusinessService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager)
     {
         _unitOfWork = unitOfWork;
+        _userManager = userManager;
     }
 
     public async Task<NaitrustResponse<BusinessResponse>> CreateBusinessAsync(Guid userId, CreateBusinessRequest request, CancellationToken ct = default)
@@ -22,17 +27,39 @@ public class BusinessService : IBusinessService
         var businessRepo = _unitOfWork.GetRepository<Business>();
         var memberRepo = _unitOfWork.GetRepository<BusinessMember>();
 
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        var ownerName = request.OwnerName ?? (user is not null ? $"{user.FirstName} {user.LastName}".Trim() : null);
+
+        var slug = !string.IsNullOrWhiteSpace(request.Slug)
+            ? request.Slug
+            : GenerateSlug(request.Name);
+
+        var ntId = GenerateNtId();
+        var phone = request.PhoneNumber ?? request.Phone;
+
         var business = new Business
         {
             Id = Guid.NewGuid(),
             OwnerUserId = userId,
             Name = request.Name,
+            Slug = slug,
+            NtId = ntId,
             Type = request.Type,
+            Description = request.Description,
+            OwnerName = ownerName,
+            Email = request.Email,
+            Phone = phone,
+            Website = request.Website,
             RegistrationNumber = request.RegistrationNumber,
             TaxId = request.TaxId,
             Country = request.Country,
             State = request.State,
+            City = request.City,
             Address = request.Address,
+            SocialHandles = request.SocialHandles,
+            PaymentAccountBankName = request.PaymentAccountBankName,
+            PaymentAccountNumber = request.PaymentAccountNumber,
+            PaymentAccountName = request.PaymentAccountName,
             VerificationStatus = BusinessVerificationStatus.NotStarted,
             IsActive = true
         };
@@ -98,25 +125,24 @@ public class BusinessService : IBusinessService
             return NaitrustResponse<BusinessResponse>.NotFound("Business not found.");
         }
 
-        if (request.Name is not null)
-        {
-            business.Name = request.Name;
-        }
-
-        if (request.Address is not null)
-        {
-            business.Address = request.Address;
-        }
-
-        if (request.State is not null)
-        {
-            business.State = request.State;
-        }
-
-        if (request.TaxId is not null)
-        {
-            business.TaxId = request.TaxId;
-        }
+        if (request.Name is not null) { business.Name = request.Name; }
+        if (request.Slug is not null) { business.Slug = request.Slug; }
+        if (request.Description is not null) { business.Description = request.Description; }
+        if (request.OwnerName is not null) { business.OwnerName = request.OwnerName; }
+        if (request.Email is not null) { business.Email = request.Email; }
+        var phone = request.PhoneNumber ?? request.Phone;
+        if (phone is not null) { business.Phone = phone; }
+        if (request.Website is not null) { business.Website = request.Website; }
+        if (request.RegistrationNumber is not null) { business.RegistrationNumber = request.RegistrationNumber; }
+        if (request.TaxId is not null) { business.TaxId = request.TaxId; }
+        if (request.Country is not null) { business.Country = request.Country; }
+        if (request.State is not null) { business.State = request.State; }
+        if (request.City is not null) { business.City = request.City; }
+        if (request.Address is not null) { business.Address = request.Address; }
+        if (request.SocialHandles is not null) { business.SocialHandles = request.SocialHandles; }
+        if (request.PaymentAccountBankName is not null) { business.PaymentAccountBankName = request.PaymentAccountBankName; }
+        if (request.PaymentAccountNumber is not null) { business.PaymentAccountNumber = request.PaymentAccountNumber; }
+        if (request.PaymentAccountName is not null) { business.PaymentAccountName = request.PaymentAccountName; }
 
         await repo.UpdateAsync(business);
         await _unitOfWork.SaveChangesAsync();
@@ -191,19 +217,110 @@ public class BusinessService : IBusinessService
         return NaitrustResponse<BusinessMemberResponse>.Success("Member updated successfully.", MapToMemberResponse(member));
     }
 
+    public async Task<NaitrustResponse<List<BusinessResponse>>> SearchAsync(string query, CancellationToken ct = default)
+    {
+        var repo = _unitOfWork.GetRepository<Business>();
+        var q = query.ToLowerInvariant();
+        var businesses = await repo.GetAllDataAsync(b =>
+            !b.IsDeleted && (
+                b.Name.ToLower().Contains(q) ||
+                (b.NtId != null && b.NtId.ToLower().Contains(q)) ||
+                (b.Slug != null && b.Slug.ToLower().Contains(q))));
+
+        var results = businesses.Select(MapToResponse).ToList();
+        return NaitrustResponse<List<BusinessResponse>>.Success("Search results.", results);
+    }
+
+    public async Task<NaitrustResponse<BusinessResponse>> GetPublicProfileAsync(string slugOrId, CancellationToken ct = default)
+    {
+        var repo = _unitOfWork.GetRepository<Business>();
+
+        Business? business = null;
+        if (Guid.TryParse(slugOrId, out var id))
+        {
+            business = await repo.GetByIdAsync(id);
+        }
+
+        if (business is null)
+        {
+            business = await repo.GetSingleByAsync(b => b.Slug == slugOrId && !b.IsDeleted);
+        }
+
+        if (business is null || business.IsDeleted)
+        {
+            return NaitrustResponse<BusinessResponse>.NotFound("Business not found.");
+        }
+
+        return NaitrustResponse<BusinessResponse>.Success("Business profile retrieved.", MapToResponse(business));
+    }
+
+    private static string GenerateSlug(string name)
+    {
+        var slug = name.ToLowerInvariant();
+        slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+        slug = Regex.Replace(slug, @"\s+", "-");
+        slug = slug.Trim('-');
+        return slug;
+    }
+
+    private static string GenerateNtId()
+    {
+        var random = Random.Shared.Next(10000, 99999);
+        return $"NT-BIZ-{random}";
+    }
+
     private static BusinessResponse MapToResponse(Business business)
     {
+        var verified = business.VerificationStatus == BusinessVerificationStatus.Verified;
+
+        // Parse SocialHandles JSON string into structured list
+        List<SocialHandleDto>? socialHandles = null;
+        if (!string.IsNullOrEmpty(business.SocialHandles))
+        {
+            try
+            {
+                socialHandles = JsonConvert.DeserializeObject<List<SocialHandleDto>>(business.SocialHandles);
+            }
+            catch
+            {
+                // If it's not valid JSON, ignore
+            }
+        }
+
+        // Wrap flat payment fields into nested object
+        PaymentAccountDto? paymentAccount = null;
+        if (!string.IsNullOrEmpty(business.PaymentAccountBankName) ||
+            !string.IsNullOrEmpty(business.PaymentAccountNumber) ||
+            !string.IsNullOrEmpty(business.PaymentAccountName))
+        {
+            paymentAccount = new PaymentAccountDto(
+                business.PaymentAccountBankName ?? "",
+                business.PaymentAccountNumber ?? "",
+                business.PaymentAccountName ?? "");
+        }
+
         return new BusinessResponse(
             business.Id,
             business.OwnerUserId,
             business.Name,
+            business.Slug,
+            business.NtId,
             business.Type,
+            business.Description,
+            business.OwnerName,
+            business.Email,
+            business.Phone,
+            business.Website,
             business.RegistrationNumber,
             business.TaxId,
             business.Country,
             business.State,
+            business.City,
             business.Address,
+            socialHandles,
+            paymentAccount,
             business.VerificationStatus.ToString(),
+            verified,
             business.RiskLevel?.ToString(),
             business.BusinessVerifiedAt,
             business.OwnershipVerifiedAt,

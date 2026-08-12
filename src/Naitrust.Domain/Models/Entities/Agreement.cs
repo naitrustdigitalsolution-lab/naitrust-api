@@ -2,8 +2,10 @@ namespace Naitrust.Domain.Models.Entities;
 
 public class Agreement : BaseEntity
 {
-    public Guid TransactionId { get; set; }
+    public Guid DealId { get; set; }
     public int Version { get; set; }
+    public bool GeneratedByAi { get; set; }
+    public string? SectionsJson { get; set; }
     public string? Summary { get; set; }
     public string? Description { get; set; }
     public string? DeliveryConditions { get; set; }

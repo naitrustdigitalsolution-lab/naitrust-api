@@ -25,7 +25,7 @@ public class VerificationRequestConfiguration : IEntityTypeConfiguration<Verific
         builder.HasIndex(x => x.RequestedByUserId);
 
         builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<Transaction>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne<Deal>().WithMany().HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne<NaitrustUser>().WithMany().HasForeignKey(x => x.ReviewedBy).OnDelete(DeleteBehavior.SetNull);
     }
 }

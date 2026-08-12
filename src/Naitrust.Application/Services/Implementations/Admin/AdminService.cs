@@ -1,4 +1,9 @@
+using Newtonsoft.Json;
+using Microsoft.Extensions.Options;
+using Naitrust.Application.ExternalServices;
+using Naitrust.Application.ExternalServices.Anchor;
 using Naitrust.Application.Services.Interfaces;
+using Naitrust.Domain.Configurations.ConfigModels;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Admin;
 using Naitrust.Domain.Models.Dtos.Responses.Admin;
@@ -7,6 +12,7 @@ using Naitrust.Domain.Models.Dtos.Responses.Transactions;
 using Naitrust.Domain.Models.Dtos.Responses.Verification;
 using Naitrust.Domain.Models.Entities;
 using Naitrust.Domain.Models.Enums.Disputes;
+using Naitrust.Domain.Models.Enums.Payments;
 using Naitrust.Domain.Models.Enums.Verification;
 using Naitrust.Infrastructure.Data.Interfaces;
 
@@ -15,32 +21,41 @@ namespace Naitrust.Application.Services.Implementations.Admin;
 public class AdminService : IAdminService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly AnchorPaymentPartner _anchor;
+    private readonly AnchorSettings _anchorSettings;
 
-    public AdminService(IUnitOfWork unitOfWork)
+    public AdminService(
+        IUnitOfWork unitOfWork,
+        AnchorPaymentPartner anchor,
+        IOptions<AnchorSettings> anchorSettings)
     {
         _unitOfWork = unitOfWork;
+        _anchor = anchor;
+        _anchorSettings = anchorSettings.Value;
     }
 
-    public async Task<NaitrustResponse<PaginatedResponse<TransactionResponse>>> GetTransactionsAsync(PaginationRequest pagination, CancellationToken ct = default)
+    public async Task<NaitrustResponse<PaginatedResponse<DealResponse>>> GetDealsAsync(PaginationRequest pagination, CancellationToken ct = default)
     {
-        var repo = _unitOfWork.GetRepository<Transaction>();
-        var allTransactions = await repo.GetAllDataAsync(
+        var repo = _unitOfWork.GetRepository<Deal>();
+        var allDeals = await repo.GetAllDataAsync(
             t => !t.IsDeleted,
             orderBy: q => q.OrderByDescending(t => t.CreatedAt));
 
-        var transactionList = allTransactions.ToList();
-        var totalCount = transactionList.Count;
+        var dealList = allDeals.ToList();
+        var totalCount = dealList.Count;
 
-        var pagedTransactions = transactionList
+        var pagedDeals = dealList
             .Skip((pagination.Page - 1) * pagination.PageSize)
             .Take(pagination.PageSize)
             .ToList();
 
-        var responses = pagedTransactions.Select(t => new TransactionResponse(
+        var responses = pagedDeals.Select(t => new DealResponse(
             t.Id,
             t.Reference,
             t.Title,
             t.Description,
+            t.UseCase,
+            t.DealType.ToString(),
             t.Category.ToString(),
             t.AmountMinor,
             t.FeeMinor,
@@ -49,6 +64,13 @@ public class AdminService : IAdminService
             t.PaymentStatus.ToString(),
             t.PartyMode.ToString(),
             t.RiskLevel?.ToString(),
+            t.DeliveryDueDate,
+            t.ReleaseConditions,
+            t.ExtendedProductTestingDays,
+            t.ExpiresAt,
+            t.Recurring,
+            t.PreviousReference,
+            null,
             null,
             null,
             null,
@@ -56,25 +78,25 @@ public class AdminService : IAdminService
 
         var totalPages = (int)Math.Ceiling((double)totalCount / pagination.PageSize);
 
-        return NaitrustResponse<PaginatedResponse<TransactionResponse>>.Success(
-            "Transactions retrieved successfully.",
-            new PaginatedResponse<TransactionResponse>(responses, pagination.Page, pagination.PageSize, totalCount, totalPages));
+        return NaitrustResponse<PaginatedResponse<DealResponse>>.Success(
+            "Deals retrieved successfully.",
+            new PaginatedResponse<DealResponse>(responses, pagination.Page, pagination.PageSize, totalCount, totalPages));
     }
 
-    public async Task<NaitrustResponse<TransactionResponse>> GetTransactionAsync(Guid transactionId, CancellationToken ct = default)
+    public async Task<NaitrustResponse<DealResponse>> GetDealAsync(Guid dealId, CancellationToken ct = default)
     {
-        var repo = _unitOfWork.GetRepository<Transaction>();
-        var transaction = await repo.GetByIdAsync(transactionId);
+        var repo = _unitOfWork.GetRepository<Deal>();
+        var deal = await repo.GetByIdAsync(dealId);
 
-        if (transaction is null || transaction.IsDeleted)
+        if (deal is null || deal.IsDeleted)
         {
-            return NaitrustResponse<TransactionResponse>.NotFound("Transaction not found.");
+            return NaitrustResponse<DealResponse>.NotFound("Deal not found.");
         }
 
-        var partyRepo = _unitOfWork.GetRepository<TransactionParty>();
-        var parties = await partyRepo.GetAllDataAsync(p => p.TransactionId == transactionId && !p.IsDeleted);
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
+        var parties = await partyRepo.GetAllDataAsync(p => p.DealId == dealId && !p.IsDeleted);
 
-        var partyResponses = parties.Select(p => new TransactionPartyResponse(
+        var partyResponses = parties.Select(p => new DealPartyResponse(
             p.Id,
             p.UserId,
             p.BusinessId,
@@ -85,47 +107,49 @@ public class AdminService : IAdminService
             p.AcceptedAt)).ToList();
 
         AgreementResponse? agreementResponse = null;
-        if (transaction.AgreementId.HasValue)
+        if (deal.AgreementId.HasValue)
         {
             var agreementRepo = _unitOfWork.GetRepository<Agreement>();
-            var agreement = await agreementRepo.GetByIdAsync(transaction.AgreementId.Value);
+            var agreement = await agreementRepo.GetByIdAsync(deal.AgreementId.Value);
             if (agreement is not null && !agreement.IsDeleted)
             {
+                var sections = DeserializeSections(agreement.SectionsJson);
                 agreementResponse = new AgreementResponse(
                     agreement.Id,
                     agreement.Version,
-                    agreement.Summary,
-                    agreement.Description,
-                    agreement.DeliveryConditions,
-                    agreement.ReleaseConditions,
-                    agreement.ProofRequirements,
-                    agreement.DisputeRules,
-                    agreement.AutoConfirmWindowHours,
-                    agreement.DeliveryDueAt,
-                    agreement.FrozenAt,
-                    agreement.CreatedAt);
+                    agreement.GeneratedByAi,
+                    sections);
             }
         }
 
-        var response = new TransactionResponse(
-            transaction.Id,
-            transaction.Reference,
-            transaction.Title,
-            transaction.Description,
-            transaction.Category.ToString(),
-            transaction.AmountMinor,
-            transaction.FeeMinor,
-            transaction.Currency,
-            transaction.Status.ToString(),
-            transaction.PaymentStatus.ToString(),
-            transaction.PartyMode.ToString(),
-            transaction.RiskLevel?.ToString(),
+        var response = new DealResponse(
+            deal.Id,
+            deal.Reference,
+            deal.Title,
+            deal.Description,
+            deal.UseCase,
+            deal.DealType.ToString(),
+            deal.Category.ToString(),
+            deal.AmountMinor,
+            deal.FeeMinor,
+            deal.Currency,
+            deal.Status.ToString(),
+            deal.PaymentStatus.ToString(),
+            deal.PartyMode.ToString(),
+            deal.RiskLevel?.ToString(),
+            deal.DeliveryDueDate,
+            deal.ReleaseConditions,
+            deal.ExtendedProductTestingDays,
+            deal.ExpiresAt,
+            deal.Recurring,
+            deal.PreviousReference,
             partyResponses,
             agreementResponse,
             null,
-            transaction.CreatedAt);
+            null,
+            deal.CreatedAt);
 
-        return NaitrustResponse<TransactionResponse>.Success("Transaction retrieved successfully.", response);
+        return NaitrustResponse<DealResponse>.Success("Deal retrieved successfully.", response);
     }
 
     public async Task<NaitrustResponse<PaginatedResponse<DisputeResponse>>> GetDisputesAsync(PaginationRequest pagination, CancellationToken ct = default)
@@ -144,16 +168,13 @@ public class AdminService : IAdminService
             .ToList();
 
         var responses = pagedDisputes.Select(d => new DisputeResponse(
-            d.Id,
-            d.TransactionId,
-            d.OpenedByUserId,
+            d.DealId,
             d.Status.ToString(),
             d.Reason,
-            d.Description,
-            d.Resolution?.ToString(),
-            d.ResolvedAt,
-            null,
-            d.CreatedAt)).ToList();
+            d.Description ?? "",
+            "Admin", // openedByName — admin context
+            d.CreatedAt,
+            null)).ToList();
 
         var totalPages = (int)Math.Ceiling((double)totalCount / pagination.PageSize);
 
@@ -194,16 +215,13 @@ public class AdminService : IAdminService
         await _unitOfWork.SaveChangesAsync();
 
         var response = new DisputeResponse(
-            dispute.Id,
-            dispute.TransactionId,
-            dispute.OpenedByUserId,
+            dispute.DealId,
             dispute.Status.ToString(),
             dispute.Reason,
-            dispute.Description,
-            dispute.Resolution?.ToString(),
-            dispute.ResolvedAt,
-            null,
-            dispute.CreatedAt);
+            dispute.Description ?? "",
+            "Admin", // openedByName — admin context
+            dispute.CreatedAt,
+            null);
 
         return NaitrustResponse<DisputeResponse>.Success("Dispute resolved successfully.", response);
     }
@@ -327,5 +345,79 @@ public class AdminService : IAdminService
         return NaitrustResponse<PaginatedResponse<AuditLogResponse>>.Success(
             "Audit logs retrieved successfully.",
             new PaginatedResponse<AuditLogResponse>(responses, pagination.Page, pagination.PageSize, totalCount, totalPages));
+    }
+
+    public async Task<NaitrustResponse<EscrowSetupResponse>> SetupPlatformEscrowAsync(CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(_anchorSettings.PlatformCustomerId))
+        {
+            return NaitrustResponse<EscrowSetupResponse>.BadRequest(
+                "Anchor:PlatformCustomerId is not configured. Set it in appsettings before running setup.");
+        }
+
+        var repo = _unitOfWork.GetRepository<VirtualAccount>();
+
+        // Idempotent — return existing if already provisioned
+        var existing = await repo.GetSingleByAsync(
+            va => va.Type == VirtualAccountType.Platform && !va.IsDeleted);
+
+        if (existing is not null)
+        {
+            return NaitrustResponse<EscrowSetupResponse>.Success(
+                "Platform escrow already provisioned.",
+                MapToEscrowResponse(existing));
+        }
+
+        // Create the subledger on Anchor under the platform customer
+        var result = await _anchor.CreateVirtualAccountAsync(
+            new CreateVirtualAccountPartnerRequest(
+                TransactionId: Guid.Empty,          // platform account, not deal-specific
+                AmountMinor: 0,
+                Currency: "NGN",
+                AccountName: "Naitrust Platform Escrow",
+                CustomerReference: _anchorSettings.PlatformCustomerId),
+            ct);
+
+        var va = new VirtualAccount
+        {
+            Id = Guid.NewGuid(),
+            UserId = null,
+            BusinessId = null,
+            Type = VirtualAccountType.Platform,
+            Partner = PaymentPartnerId.Anchor,
+            ProviderReference = result.ProviderReference,
+            AccountNumber = result.AccountNumber,
+            AccountName = result.AccountName,
+            BankName = result.BankName,
+            AmountReceivedMinor = 0,
+            Currency = "NGN",
+            Status = VirtualAccountStatus.Issued,
+            IsActive = true
+        };
+
+        await repo.AddAsync(va);
+        await _unitOfWork.SaveChangesAsync();
+
+        return NaitrustResponse<EscrowSetupResponse>.Created(
+            "Platform escrow subledger provisioned successfully.",
+            MapToEscrowResponse(va));
+    }
+
+    private static EscrowSetupResponse MapToEscrowResponse(VirtualAccount va) =>
+        new(va.Id, va.ProviderReference ?? "", va.AccountNumber ?? "",
+            va.AccountName ?? "", va.BankName ?? "", va.Status.ToString(), va.CreatedAt);
+
+    private static List<AgreementSectionResponse> DeserializeSections(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return new List<AgreementSectionResponse>();
+        try
+        {
+            return JsonConvert.DeserializeObject<List<AgreementSectionResponse>>(json)
+                ?? new List<AgreementSectionResponse>();
+        }
+        catch
+        {
+            return new List<AgreementSectionResponse>();
+        }
     }
 }

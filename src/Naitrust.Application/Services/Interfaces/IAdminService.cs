@@ -1,23 +1,23 @@
-using Naitrust.Domain.Models.Dtos.Requests.Admin;
-using Naitrust.Domain.Models.Dtos.Responses.Transactions;
-using Naitrust.Domain.Models.Dtos.Responses.Disputes;
-using Naitrust.Domain.Models.Dtos.Responses.Verification;
-using Naitrust.Domain.Models.Dtos.Responses.Admin;
 using Naitrust.Domain.Models.Dtos.Common;
+using Naitrust.Domain.Models.Dtos.Requests.Admin;
+using Naitrust.Domain.Models.Dtos.Responses.Admin;
+using Naitrust.Domain.Models.Dtos.Responses.Disputes;
+using Naitrust.Domain.Models.Dtos.Responses.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Verification;
 
 namespace Naitrust.Application.Services.Interfaces;
 
 public interface IAdminService
 {
     /// <summary>
-    /// Retrieves a paginated list of all transactions for administrative review.
+    /// Retrieves a paginated list of all deals for administrative review.
     /// </summary>
-    Task<NaitrustResponse<PaginatedResponse<TransactionResponse>>> GetTransactionsAsync(PaginationRequest pagination, CancellationToken ct = default);
+    Task<NaitrustResponse<PaginatedResponse<DealResponse>>> GetDealsAsync(PaginationRequest pagination, CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves a single transaction by ID with full details for administrative review.
+    /// Retrieves a single deal by ID with full details for administrative review.
     /// </summary>
-    Task<NaitrustResponse<TransactionResponse>> GetTransactionAsync(Guid transactionId, CancellationToken ct = default);
+    Task<NaitrustResponse<DealResponse>> GetDealAsync(Guid dealId, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves a paginated list of all disputes for administrative review.
@@ -43,4 +43,10 @@ public interface IAdminService
     /// Retrieves paginated system audit logs for administrative review.
     /// </summary>
     Task<NaitrustResponse<PaginatedResponse<AuditLogResponse>>> GetAuditLogsAsync(PaginationRequest pagination, CancellationToken ct = default);
+
+    /// <summary>
+    /// One-time setup: provisions the platform's central escrow subledger on Anchor.
+    /// Idempotent — returns existing record if already set up.
+    /// </summary>
+    Task<NaitrustResponse<EscrowSetupResponse>> SetupPlatformEscrowAsync(CancellationToken ct = default);
 }
