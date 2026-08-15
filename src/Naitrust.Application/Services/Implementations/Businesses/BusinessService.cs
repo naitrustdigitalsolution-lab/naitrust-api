@@ -324,6 +324,7 @@ public class BusinessService : IBusinessService
             business.RiskLevel?.ToString(),
             business.BusinessVerifiedAt,
             business.OwnershipVerifiedAt,
+            business.VerificationExpiresAt,
             business.CreatedAt);
     }
 

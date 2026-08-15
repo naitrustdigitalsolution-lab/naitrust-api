@@ -777,6 +777,8 @@ public class DealOrchestrator : IDealOrchestrator
     {
         return new DealResponse(
             deal.Id,
+            deal.CreatedByUserId,
+            deal.BusinessId,
             deal.Reference,
             deal.Title,
             deal.Description,

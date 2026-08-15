@@ -25,6 +25,7 @@ public record BusinessResponse(
     string? RiskLevel,
     DateTime? BusinessVerifiedAt,
     DateTime? OwnershipVerifiedAt,
+    DateTime? VerificationExpiresAt,
     DateTime CreatedAt);
 
 public record SocialHandleDto(string Platform, string Value);

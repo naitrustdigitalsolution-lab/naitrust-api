@@ -2,6 +2,8 @@ namespace Naitrust.Domain.Models.Dtos.Responses.Transactions;
 
 public record DealResponse(
     Guid Id,
+    Guid CreatedByUserId,
+    Guid? BusinessId,
     string Reference,
     string Title,
     string? Description,
