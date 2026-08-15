@@ -1,3 +1,5 @@
+> **Superseded — see `P1-API-ALIGNMENT-PLAN.md`.** This early scaffolding todo list no longer reflects the current backend state; kept for historical reference only.
+
 # Naitrust API — Implementation Todo
 
 Everything below is scaffolded but not yet implemented (throws `NotImplementedException` or has empty `// TODO` bodies).

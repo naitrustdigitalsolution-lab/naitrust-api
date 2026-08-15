@@ -1,3 +1,5 @@
+> **Superseded — see `P1-API-ALIGNMENT-PLAN.md`.** This early scaffolding plan no longer reflects the current backend state; kept for historical reference only.
+
 # Naitrust API — Service Implementation Plan
 
 ## Context
