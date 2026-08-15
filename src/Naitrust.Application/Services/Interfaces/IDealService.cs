@@ -1,5 +1,6 @@
 using Naitrust.Domain.Models.Dtos.Requests.Transactions;
 using Naitrust.Domain.Models.Dtos.Responses.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Security;
 using Naitrust.Domain.Models.Dtos.Common;
 
 namespace Naitrust.Application.Services.Interfaces;
@@ -30,4 +31,10 @@ public interface IDealService
     /// Returns all available deal types (e.g., Goods, Services, Real Estate).
     /// </summary>
     Task<NaitrustResponse<List<DealTypeResponse>>> GetDealTypesAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns a single identity capture's photo URL for an authorized party to the deal,
+    /// gated by the 90-day retention window (waived when under legal hold).
+    /// </summary>
+    Task<NaitrustResponse<DealIdentityCaptureResponse>> GetIdentityCaptureViewAsync(Guid dealId, Guid captureId, Guid callerUserId, CancellationToken ct = default);
 }

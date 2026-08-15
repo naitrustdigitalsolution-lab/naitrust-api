@@ -13,11 +13,13 @@ public class DisputeService : IDisputeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<NaitrustUser> _userManager;
+    private readonly IDealOrchestrator _orchestrator;
 
-    public DisputeService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager)
+    public DisputeService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager, IDealOrchestrator orchestrator)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
+        _orchestrator = orchestrator;
     }
 
     public async Task<NaitrustResponse<DisputeResponse?>> GetByTransactionAsync(Guid transactionId, Guid userId, CancellationToken ct = default)
@@ -82,6 +84,12 @@ public class DisputeService : IDisputeService
         await msgRepo.AddAsync(autoMsg);
 
         await _unitOfWork.SaveChangesAsync();
+
+        // Evidence attached: freeze any in-progress handover/funding-review release immediately.
+        if (request.HasEvidence)
+        {
+            await _orchestrator.BlockDeliveryReleaseAsync(transactionId, ct);
+        }
 
         var messages = await GetDisputeMessagesAsync(dispute.Id, userId);
         return NaitrustResponse<DisputeResponse>.Created("Dispute opened.", await MapToResponse(dispute, messages, userId));

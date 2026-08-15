@@ -32,6 +32,7 @@ public record DealResponse(
     long? RemainingPaymentMinor = null,
     string? NextPaymentReleaseConditions = null,
     int? ActivePaymentStage = null,
-    DateTime? FirstPaymentReleasedAt = null);
+    DateTime? FirstPaymentReleasedAt = null,
+    DealDeliveryLifecycleDto? Delivery = null);
 
 public record AllowedActionDto(string Action, string Label, bool Enabled);

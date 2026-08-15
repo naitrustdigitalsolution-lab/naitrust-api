@@ -32,4 +32,8 @@ public interface ISecurityService
 
     /// <summary>Verifies the user's transaction PIN without side effects.</summary>
     Task<NaitrustResponse<bool>> VerifyPinAsync(Guid userId, VerifyPinRequest request, CancellationToken ct = default);
+
+    /// <summary>Registers a deal-scoped liveness capture (e.g. at deal creation), optionally with a photo uploaded to storage.</summary>
+    Task<NaitrustResponse<DealIdentityCaptureResponse>> RegisterDealIdentityCaptureAsync(
+        Guid userId, RegisterDealIdentityCaptureRequest request, Stream? photoStream, string? photoFileName, string? photoContentType, CancellationToken ct = default);
 }

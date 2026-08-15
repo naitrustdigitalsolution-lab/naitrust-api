@@ -5,8 +5,10 @@ using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Transactions;
 using Naitrust.Domain.Models.Dtos.Responses.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Security;
 using Naitrust.Domain.Models.Entities;
 using Naitrust.Domain.Models.Enums.Transactions;
+using Naitrust.Domain.Models.Enums.Verification;
 using Naitrust.Infrastructure.Data.Interfaces;
 
 namespace Naitrust.Application.Services.Implementations.Transactions;
@@ -15,11 +17,13 @@ public class DealService : IDealService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<NaitrustUser> _userManager;
+    private readonly IDealOrchestrator _orchestrator;
 
-    public DealService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager)
+    public DealService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager, IDealOrchestrator orchestrator)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
+        _orchestrator = orchestrator;
     }
 
     public async Task<NaitrustResponse<DealResponse>> CreateDealAsync(Guid userId, CreateDealRequest request, CancellationToken ct = default)
@@ -91,6 +95,24 @@ public class DealService : IDealService
         }
 
         await dealRepo.AddAsync(deal);
+
+        if (request.ActionLiveness is not null)
+        {
+            var captureRepo = _unitOfWork.GetRepository<DealIdentityCapture>();
+            await captureRepo.AddAsync(new DealIdentityCapture
+            {
+                Id = Guid.NewGuid(),
+                DealId = deal.Id,
+                SubjectUserId = request.ActionLiveness.ActorUserId,
+                ClientCaptureId = request.ActionLiveness.CaptureId,
+                RepresentativeName = creatorName,
+                Action = DealIdentityCaptureAction.DealCreated,
+                CapturedAt = request.ActionLiveness.VerifiedAt,
+                VerificationStatus = LivenessCaptureStatus.Passed,
+                PhotoAvailable = false,
+                IsActive = true
+            });
+        }
 
         // Create the creator as a party
         var creatorParty = new DealParty
@@ -244,10 +266,11 @@ public class DealService : IDealService
         }
 
         var allowedActions = GetAllowedActions(deal.Status);
+        var delivery = await _orchestrator.ReconcileAndGetDeliveryStateAsync(deal, ct);
 
         return NaitrustResponse<DealResponse>.Success(
             "Deal retrieved successfully.",
-            MapToResponse(deal, partyResponses, agreementResponse, allowedActions));
+            MapToResponse(deal, partyResponses, agreementResponse, allowedActions, delivery: delivery));
     }
 
     public async Task<NaitrustResponse<PaginatedResponse<DealResponse>>> ListDealsAsync(Guid userId, PaginationRequest pagination, CancellationToken ct = default)
@@ -352,12 +375,50 @@ public class DealService : IDealService
             "Deal types retrieved successfully.", responses);
     }
 
+    public async Task<NaitrustResponse<DealIdentityCaptureResponse>> GetIdentityCaptureViewAsync(Guid dealId, Guid captureId, Guid callerUserId, CancellationToken ct = default)
+    {
+        var dealRepo = _unitOfWork.GetRepository<Deal>();
+        var deal = await dealRepo.GetByIdAsync(dealId);
+        if (deal is null || deal.IsDeleted)
+            return NaitrustResponse<DealIdentityCaptureResponse>.NotFound("Deal not found.");
+
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
+        var callerParty = await partyRepo.GetSingleByAsync(p => p.DealId == dealId && p.UserId == callerUserId && !p.IsDeleted);
+        if (callerParty is null)
+            return NaitrustResponse<DealIdentityCaptureResponse>.Forbidden("You are not authorised to view this deal identity photo.");
+
+        var captureRepo = _unitOfWork.GetRepository<DealIdentityCapture>();
+        var capture = await captureRepo.GetSingleByAsync(c => c.Id == captureId && c.DealId == dealId && !c.IsDeleted);
+        if (capture is null || !capture.PhotoAvailable || capture.EncryptedEvidenceRef is null)
+            return NaitrustResponse<DealIdentityCaptureResponse>.NotFound("Photo for this deal is not available.");
+
+        var retentionExpiresAt = ComputeRetentionExpiresAt(deal);
+        if (retentionExpiresAt.HasValue && DateTime.UtcNow > retentionExpiresAt.Value && !capture.LegalHold)
+            return NaitrustResponse<DealIdentityCaptureResponse>.BadRequest("This deal identity photo is no longer available.");
+
+        return NaitrustResponse<DealIdentityCaptureResponse>.Success("Identity capture retrieved.", new DealIdentityCaptureResponse(
+            capture.Id, capture.DealId, capture.SubjectUserId, capture.RepresentativeName, capture.BusinessName,
+            capture.Action.ToString(), capture.CapturedAt, capture.VerificationStatus.ToString(), capture.PhotoAvailable,
+            retentionExpiresAt, capture.LegalHold, capture.EncryptedEvidenceRef));
+    }
+
+    /// <summary>90 days from the deal's terminal-status timestamp; null while the deal is still active.</summary>
+    private static DateTime? ComputeRetentionExpiresAt(Deal deal)
+    {
+        var isClosed = deal.Status is DealStatus.PaidOut or DealStatus.Completed or DealStatus.Cancelled or DealStatus.Refunded;
+        if (!isClosed) return null;
+
+        var closedAt = deal.CompletedAt ?? deal.CancelledAt ?? deal.UpdatedAt;
+        return closedAt.AddDays(90);
+    }
+
     private static DealResponse MapToResponse(
         Deal deal,
         List<DealPartyResponse>? parties,
         AgreementResponse? agreement,
         List<AllowedActionDto>? allowedActions = null,
-        string? publicInvitePath = null)
+        string? publicInvitePath = null,
+        DealDeliveryLifecycleDto? delivery = null)
     {
         return new DealResponse(
             deal.Id,
@@ -391,7 +452,8 @@ public class DealService : IDealService
             deal.RemainingPaymentMinor,
             deal.NextPaymentReleaseConditions,
             deal.ActivePaymentStage,
-            deal.FirstPaymentReleasedAt);
+            deal.FirstPaymentReleasedAt,
+            delivery);
     }
 
     private static DealPartyResponse MapToPartyResponse(DealParty party, Guid? currentUserId = null)

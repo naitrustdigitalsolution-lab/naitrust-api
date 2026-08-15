@@ -22,7 +22,11 @@ public record CreateDealRequest(
     /// <summary>1-100. Used to compute the first-stage amount when InitialPaymentMode is "percentage".</summary>
     int? InitialPaymentPercentage = null,
     long? RemainingPaymentMinor = null,
-    string? NextPaymentReleaseConditions = null);
+    string? NextPaymentReleaseConditions = null,
+    /// <summary>Liveness proof recorded client-side just before this deal was created.</summary>
+    ActionLivenessInput? ActionLiveness = null);
+
+public record ActionLivenessInput(Guid ActorUserId, DateTime VerifiedAt, string CaptureId);
 
 public record ParticipantInput(
     string Name,

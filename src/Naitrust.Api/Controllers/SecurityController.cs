@@ -129,4 +129,26 @@ public class SecurityController : ControllerBase
         var response = await _securityService.VerifyPinAsync(GetUserId(), request);
         return StatusCode((int)response.StatusCode, response);
     }
+
+    // ── Deal Identity Capture ─────────────────────────────────────
+
+    /// <summary>Register a deal-scoped liveness capture, optionally with a photo.</summary>
+    [HttpPost("liveness/deal-captures")]
+    [ProducesResponseType(201, Type = typeof(NaitrustResponse<DealIdentityCaptureResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> RegisterDealIdentityCaptureAsync([FromForm] RegisterDealIdentityCaptureRequest request, IFormFile? photo, CancellationToken ct)
+    {
+        if (photo is null)
+        {
+            var response = await _securityService.RegisterDealIdentityCaptureAsync(GetUserId(), request, null, null, null, ct);
+            return StatusCode((int)response.StatusCode, response);
+        }
+
+        await using var stream = photo.OpenReadStream();
+        var resultWithPhoto = await _securityService.RegisterDealIdentityCaptureAsync(GetUserId(), request, stream, photo.FileName, photo.ContentType, ct);
+        return StatusCode((int)resultWithPhoto.StatusCode, resultWithPhoto);
+    }
 }
