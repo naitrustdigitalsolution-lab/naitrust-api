@@ -5,6 +5,7 @@ using Naitrust.Application.Services.Interfaces;
 using Naitrust.Domain.Models.Dtos.Common;
 using Naitrust.Domain.Models.Dtos.Requests.Transactions;
 using Naitrust.Domain.Models.Dtos.Responses.Transactions;
+using Naitrust.Domain.Models.Dtos.Responses.Security;
 
 namespace Naitrust.Api.Controllers;
 
@@ -184,6 +185,83 @@ public class DealsController : ControllerBase
     public async Task<IActionResult> CancelAsync(Guid id)
     {
         var response = await _orchestrator.CancelDealAsync(id, GetUserId());
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    // ── Delivery card / handover review / funding review ──────────────────
+    // Additive: does not replace /deliver or /confirm above.
+
+    /// <summary>Seller generates (or regenerates) the buyer-locked delivery card</summary>
+    [HttpPost("{id:guid}/delivery/card")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> GenerateDeliveryCardAsync(Guid id)
+    {
+        var response = await _orchestrator.GenerateDeliveryCardAsync(id, GetUserId());
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>Seller invalidates an active, unused delivery card</summary>
+    [HttpPost("{id:guid}/delivery/card/invalidate")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> InvalidateDeliveryCardAsync(Guid id)
+    {
+        var response = await _orchestrator.InvalidateDeliveryCardAsync(id, GetUserId());
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>Buyer confirms receipt using the card's token or OTP, starting the handover review window</summary>
+    [HttpPost("{id:guid}/delivery/receipt")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> ConfirmDeliveryReceiptAsync(Guid id, [FromBody] ConfirmDeliveryReceiptRequest request)
+    {
+        var response = await _orchestrator.ConfirmDeliveryReceiptAsync(id, GetUserId(), request);
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>Buyer confirms the correct product during handover, starting the funding review window</summary>
+    [HttpPost("{id:guid}/delivery/handover/complete")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> CompleteHandoverReviewAsync(Guid id)
+    {
+        var response = await _orchestrator.CompleteHandoverReviewAsync(id, GetUserId());
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    /// <summary>Buyer approves early release during an active funding review</summary>
+    [HttpPost("{id:guid}/delivery/release/approve")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> ApproveEarlyReleaseAsync(Guid id)
+    {
+        var response = await _orchestrator.ApproveEarlyReleaseAsync(id, GetUserId());
+        return StatusCode((int)response.StatusCode, response);
+    }
+
+    // ── Deal identity capture ───────────────────────────────────────────
+
+    /// <summary>View a deal identity capture's photo (gated by deal-party authorization and the retention window)</summary>
+    [HttpGet("{dealId:guid}/identity-captures/{captureId:guid}/view")]
+    [ProducesResponseType(200, Type = typeof(NaitrustResponse<DealIdentityCaptureResponse>))]
+    [ProducesResponseType(400, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(401, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(403, Type = typeof(NaitrustResponse))]
+    [ProducesResponseType(404, Type = typeof(NaitrustResponse))]
+    public async Task<IActionResult> ViewIdentityCaptureAsync(Guid dealId, Guid captureId)
+    {
+        var response = await _dealService.GetIdentityCaptureViewAsync(dealId, captureId, GetUserId());
         return StatusCode((int)response.StatusCode, response);
     }
 }

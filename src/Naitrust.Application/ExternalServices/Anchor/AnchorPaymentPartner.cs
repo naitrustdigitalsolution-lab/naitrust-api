@@ -126,7 +126,7 @@ public class AnchorPaymentPartner : IPaymentPartner
 
     // ── Get Funding Status ────────────────────────────────────────────────────
 
-    public async Task<FundingStatusResult> GetFundingStatusAsync(
+    public virtual async Task<FundingStatusResult> GetFundingStatusAsync(
         FundingStatusRequest request, CancellationToken ct = default)
     {
         var httpResp = await _httpClient.GetAsync($"accounts/{request.ProviderReference}", ct);
@@ -201,7 +201,7 @@ public class AnchorPaymentPartner : IPaymentPartner
     /// Transfers funds between two Anchor subledgers (e.g. buyer wallet → platform escrow).
     /// This is an instant book transfer with no NIP fees.
     /// </summary>
-    public async Task<PaymentInstructionResult> InternalTransferAsync(
+    public virtual async Task<PaymentInstructionResult> InternalTransferAsync(
         string sourceSubAccountId,
         string destinationSubAccountId,
         long amountMinor,

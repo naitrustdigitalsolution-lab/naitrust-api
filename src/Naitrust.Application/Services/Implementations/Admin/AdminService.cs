@@ -52,6 +52,8 @@ public class AdminService : IAdminService
 
         var responses = pagedDeals.Select(t => new DealResponse(
             t.Id,
+            t.CreatedByUserId,
+            t.BusinessId,
             t.Reference,
             t.Title,
             t.Description,
@@ -75,7 +77,12 @@ public class AdminService : IAdminService
             null,
             null,
             null,
-            t.CreatedAt)).ToList();
+            t.CreatedAt,
+            t.InitialPaymentMinor,
+            t.RemainingPaymentMinor,
+            t.NextPaymentReleaseConditions,
+            t.ActivePaymentStage,
+            t.FirstPaymentReleasedAt)).ToList();
 
         var totalPages = (int)Math.Ceiling((double)totalCount / pagination.PageSize);
 
@@ -125,6 +132,8 @@ public class AdminService : IAdminService
 
         var response = new DealResponse(
             deal.Id,
+            deal.CreatedByUserId,
+            deal.BusinessId,
             deal.Reference,
             deal.Title,
             deal.Description,
@@ -148,7 +157,12 @@ public class AdminService : IAdminService
             agreementResponse,
             null,
             null,
-            deal.CreatedAt);
+            deal.CreatedAt,
+            deal.InitialPaymentMinor,
+            deal.RemainingPaymentMinor,
+            deal.NextPaymentReleaseConditions,
+            deal.ActivePaymentStage,
+            deal.FirstPaymentReleasedAt);
 
         return NaitrustResponse<DealResponse>.Success("Deal retrieved successfully.", response);
     }

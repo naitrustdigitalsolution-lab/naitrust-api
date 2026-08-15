@@ -13,11 +13,13 @@ public class DisputeService : IDisputeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<NaitrustUser> _userManager;
+    private readonly IDealOrchestrator _orchestrator;
 
-    public DisputeService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager)
+    public DisputeService(IUnitOfWork unitOfWork, UserManager<NaitrustUser> userManager, IDealOrchestrator orchestrator)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
+        _orchestrator = orchestrator;
     }
 
     public async Task<NaitrustResponse<DisputeResponse?>> GetByTransactionAsync(Guid transactionId, Guid userId, CancellationToken ct = default)
@@ -58,9 +60,10 @@ public class DisputeService : IDisputeService
             Id = Guid.NewGuid(),
             DealId = transactionId,
             OpenedByUserId = userId,
-            Status = DisputeStatus.UnderReview,
+            Status = request.HasEvidence ? DisputeStatus.UnderReview : DisputeStatus.EvidenceRequested,
             Reason = request.Reason,
             Description = request.Description,
+            HasEvidence = request.HasEvidence,
             IsActive = true
         };
 
@@ -73,12 +76,20 @@ public class DisputeService : IDisputeService
             Id = Guid.NewGuid(),
             DisputeId = dispute.Id,
             SenderUserId = Guid.Empty, // System
-            Message = "Your dispute has been received. Add any evidence and we will review it shortly.",
+            Message = request.HasEvidence
+                ? "Your report and evidence were received. Automatic payment release is frozen while the dispute is reviewed."
+                : "Your report was received without evidence. Payment is not frozen yet. Upload relevant evidence as soon as possible; insufficient evidence may affect the final decision.",
             CreatedAt = DateTime.UtcNow
         };
         await msgRepo.AddAsync(autoMsg);
 
         await _unitOfWork.SaveChangesAsync();
+
+        // Evidence attached: freeze any in-progress handover/funding-review release immediately.
+        if (request.HasEvidence)
+        {
+            await _orchestrator.BlockDeliveryReleaseAsync(transactionId, ct);
+        }
 
         var messages = await GetDisputeMessagesAsync(dispute.Id, userId);
         return NaitrustResponse<DisputeResponse>.Created("Dispute opened.", await MapToResponse(dispute, messages, userId));
@@ -154,12 +165,12 @@ public class DisputeService : IDisputeService
             openedByName = user is not null ? $"{user.FirstName} {user.LastName}".Trim() : "Unknown";
         }
 
-        // Frontend status: 'open' | 'under_review' | 'resolved_release' | 'resolved_refund'
+        // Frontend status: 'awaiting_evidence' | 'open' | 'under_review' | 'resolved_release' | 'resolved_refund'
         var status = dispute.Status switch
         {
             DisputeStatus.Opened => "open",
+            DisputeStatus.EvidenceRequested => "awaiting_evidence",
             DisputeStatus.UnderReview => "under_review",
-            DisputeStatus.EvidenceRequested => "under_review",
             DisputeStatus.ResolvedRelease => "resolved_release",
             DisputeStatus.ResolvedRefund => "resolved_refund",
             _ => dispute.Status.ToString().ToLowerInvariant()
@@ -172,6 +183,23 @@ public class DisputeService : IDisputeService
             dispute.Description ?? "",
             openedByName,
             dispute.CreatedAt,
-            messages);
+            messages,
+            AddBusinessDays(dispute.CreatedAt, 2));
+    }
+
+    /// <summary>Adds a number of business days (Mon-Fri) to a UTC timestamp, skipping weekends.</summary>
+    private static DateTime AddBusinessDays(DateTime start, int businessDays)
+    {
+        var date = start;
+        var added = 0;
+        while (added < businessDays)
+        {
+            date = date.AddDays(1);
+            if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+            {
+                added++;
+            }
+        }
+        return date;
     }
 }

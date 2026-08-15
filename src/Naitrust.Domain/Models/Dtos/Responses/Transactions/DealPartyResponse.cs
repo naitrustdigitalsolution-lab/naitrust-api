@@ -10,4 +10,8 @@ public record DealPartyResponse(
     string Status,
     DateTime? AcceptedAt,
     string? CounterpartyName = null,
-    bool IsYou = false);
+    bool IsYou = false,
+    long? AllocationMinor = null,
+    List<PaymentAllocationDto>? PaymentAllocations = null);
+
+public record PaymentAllocationDto(int Stage, long AmountMinor);

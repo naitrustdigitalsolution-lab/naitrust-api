@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Naitrust.Infrastructure.Context;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Naitrust.Infrastructure.Migrations
 {
     [DbContext(typeof(NaitrustDbContext))]
-    partial class NaitrustDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260815020917_Deal_StagedPayments_DisputeEvidence")]
+    partial class Deal_StagedPayments_DisputeEvidence
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -792,176 +795,6 @@ namespace Naitrust.Infrastructure.Migrations
                     b.HasIndex("Status", "PaymentStatus");
 
                     b.ToTable("Transactions", (string)null);
-                });
-
-            modelBuilder.Entity("Naitrust.Domain.Models.Entities.DealDeliveryState", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CardExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("CardGeneratedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CardGeneration")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("CardIntendedBuyerUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CardInvalidatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CardOtpCode")
-                        .HasMaxLength(6)
-                        .HasColumnType("character varying(6)");
-
-                    b.Property<string>("CardStatus")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CardToken")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<DateTime?>("CardUsedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("DealId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("TransactionId");
-
-                    b.Property<DateTime?>("FundingReviewEndsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("FundingReviewStartsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FundingReviewStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("HandoverCompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("HandoverCompletionReason")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("HandoverEndsAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("HandoverReceivedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("HandoverStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("PaidOutAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PaymentReference")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("ReleaseApprovedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ReleaseMethod")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CardIntendedBuyerUserId");
-
-                    b.HasIndex("CardToken");
-
-                    b.HasIndex("DealId")
-                        .IsUnique();
-
-                    b.ToTable("DealDeliveryStates", (string)null);
-                });
-
-            modelBuilder.Entity("Naitrust.Domain.Models.Entities.DealIdentityCapture", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BusinessName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("CapturedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ClientCaptureId")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("DealId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("TransactionId");
-
-                    b.Property<string>("EncryptedEvidenceRef")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("LegalHold")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("PhotoAvailable")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("RepresentativeName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid>("SubjectUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("VerificationStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DealId");
-
-                    b.HasIndex("SubjectUserId");
-
-                    b.ToTable("DealIdentityCaptures", (string)null);
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.DealInvitation", b =>
@@ -3439,35 +3272,6 @@ namespace Naitrust.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("TransactionTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
-                });
-
-            modelBuilder.Entity("Naitrust.Domain.Models.Entities.DealDeliveryState", b =>
-                {
-                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
-                        .WithMany()
-                        .HasForeignKey("CardIntendedBuyerUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Naitrust.Domain.Models.Entities.Deal", null)
-                        .WithMany()
-                        .HasForeignKey("DealId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Naitrust.Domain.Models.Entities.DealIdentityCapture", b =>
-                {
-                    b.HasOne("Naitrust.Domain.Models.Entities.Deal", null)
-                        .WithMany()
-                        .HasForeignKey("DealId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Naitrust.Domain.Models.Entities.NaitrustUser", null)
-                        .WithMany()
-                        .HasForeignKey("SubjectUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Naitrust.Domain.Models.Entities.DealInvitation", b =>

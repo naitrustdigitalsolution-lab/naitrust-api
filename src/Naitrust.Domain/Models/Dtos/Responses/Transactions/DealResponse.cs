@@ -2,6 +2,8 @@ namespace Naitrust.Domain.Models.Dtos.Responses.Transactions;
 
 public record DealResponse(
     Guid Id,
+    Guid CreatedByUserId,
+    Guid? BusinessId,
     string Reference,
     string Title,
     string? Description,
@@ -25,6 +27,12 @@ public record DealResponse(
     AgreementResponse? Agreement,
     List<AllowedActionDto>? AllowedActions,
     string? PublicInvitePath,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    long? InitialPaymentMinor = null,
+    long? RemainingPaymentMinor = null,
+    string? NextPaymentReleaseConditions = null,
+    int? ActivePaymentStage = null,
+    DateTime? FirstPaymentReleasedAt = null,
+    DealDeliveryLifecycleDto? Delivery = null);
 
 public record AllowedActionDto(string Action, string Label, bool Enabled);

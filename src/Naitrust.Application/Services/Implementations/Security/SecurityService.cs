@@ -12,6 +12,7 @@ using Naitrust.Domain.Models.Dtos.Requests.Security;
 using Naitrust.Domain.Models.Dtos.Responses.Security;
 using Naitrust.Domain.Models.Entities;
 using Naitrust.Domain.Models.Enums.Payments;
+using Naitrust.Domain.Models.Enums.Verification;
 using Naitrust.Infrastructure.Data.Interfaces;
 
 namespace Naitrust.Application.Services.Implementations.Security;
@@ -26,6 +27,7 @@ public class SecurityService : ISecurityService
     private readonly IVerificationProvider _qoreId;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<SecurityService> _logger;
+    private readonly IStorageService _storage;
 
     public SecurityService(
         UserManager<NaitrustUser> userManager,
@@ -35,7 +37,8 @@ public class SecurityService : ISecurityService
         AnchorPaymentPartner anchor,
         IVerificationProvider qoreId,
         IUnitOfWork unitOfWork,
-        ILogger<SecurityService> logger)
+        ILogger<SecurityService> logger,
+        IStorageService storage)
     {
         _userManager    = userManager;
         _cacheService   = cacheService;
@@ -45,6 +48,7 @@ public class SecurityService : ISecurityService
         _qoreId         = qoreId;
         _unitOfWork     = unitOfWork;
         _logger         = logger;
+        _storage        = storage;
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -514,5 +518,57 @@ public class SecurityService : ISecurityService
                  | (hash[offset + 3] & 0xff);
 
         return (code % 1_000_000).ToString("D6");
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Deal Identity Capture
+    // ──────────────────────────────────────────────────────────────
+
+    public async Task<NaitrustResponse<DealIdentityCaptureResponse>> RegisterDealIdentityCaptureAsync(
+        Guid userId, RegisterDealIdentityCaptureRequest request, Stream? photoStream, string? photoFileName, string? photoContentType, CancellationToken ct = default)
+    {
+        var dealRepo = _unitOfWork.GetRepository<Deal>();
+        var deal = await dealRepo.GetByIdAsync(request.DealId);
+        if (deal is null || deal.IsDeleted)
+            return NaitrustResponse<DealIdentityCaptureResponse>.NotFound("Deal not found.");
+
+        var partyRepo = _unitOfWork.GetRepository<DealParty>();
+        var party = await partyRepo.GetSingleByAsync(p => p.DealId == request.DealId && p.UserId == userId && !p.IsDeleted);
+        if (party is null)
+            return NaitrustResponse<DealIdentityCaptureResponse>.Forbidden("You are not a party to this deal.");
+
+        if (!Enum.TryParse<DealIdentityCaptureAction>(request.Action, ignoreCase: true, out var action))
+            return NaitrustResponse<DealIdentityCaptureResponse>.BadRequest($"Invalid capture action: {request.Action}");
+
+        string? evidenceRef = null;
+        var photoAvailable = false;
+        if (photoStream is not null && !string.IsNullOrWhiteSpace(photoFileName))
+        {
+            evidenceRef = await _storage.UploadFileAsync(photoStream, photoFileName, photoContentType ?? "application/octet-stream", ct);
+            photoAvailable = true;
+        }
+
+        var capture = new DealIdentityCapture
+        {
+            Id = Guid.NewGuid(),
+            DealId = request.DealId,
+            SubjectUserId = userId,
+            RepresentativeName = request.RepresentativeName,
+            BusinessName = request.BusinessName,
+            Action = action,
+            CapturedAt = DateTime.UtcNow,
+            VerificationStatus = LivenessCaptureStatus.Passed,
+            EncryptedEvidenceRef = evidenceRef,
+            PhotoAvailable = photoAvailable,
+            IsActive = true
+        };
+
+        var captureRepo = _unitOfWork.GetRepository<DealIdentityCapture>();
+        await captureRepo.AddAsync(capture);
+        await _unitOfWork.SaveChangesAsync();
+
+        return NaitrustResponse<DealIdentityCaptureResponse>.Created("Identity capture registered.", new DealIdentityCaptureResponse(
+            capture.Id, capture.DealId, capture.SubjectUserId, capture.RepresentativeName, capture.BusinessName,
+            request.Action, capture.CapturedAt, capture.VerificationStatus.ToString(), capture.PhotoAvailable, null, capture.LegalHold));
     }
 }
