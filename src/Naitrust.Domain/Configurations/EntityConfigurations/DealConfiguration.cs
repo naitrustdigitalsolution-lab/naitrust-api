@@ -17,6 +17,7 @@ public class DealConfiguration : IEntityTypeConfiguration<Deal>
         builder.Property(x => x.DeliveryDueDate).HasMaxLength(50);
         builder.Property(x => x.ReleaseConditions).HasMaxLength(2000);
         builder.Property(x => x.PreviousReference).HasMaxLength(50);
+        builder.Property(x => x.NextPaymentReleaseConditions).HasMaxLength(2000);
 
         builder.Property(x => x.PartyMode).HasConversion<string>();
         builder.Property(x => x.DealType).HasConversion<string>();

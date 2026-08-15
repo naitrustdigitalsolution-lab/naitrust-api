@@ -802,11 +802,24 @@ public class DealOrchestrator : IDealOrchestrator
             agreement,
             allowedActions,
             null,
-            deal.CreatedAt);
+            deal.CreatedAt,
+            deal.InitialPaymentMinor,
+            deal.RemainingPaymentMinor,
+            deal.NextPaymentReleaseConditions,
+            deal.ActivePaymentStage,
+            deal.FirstPaymentReleasedAt);
     }
 
     private static DealPartyResponse MapToPartyResponse(DealParty party)
     {
+        List<PaymentAllocationDto>? paymentAllocations = null;
+        if (party.AllocationStage1Minor.HasValue || party.AllocationStage2Minor.HasValue)
+        {
+            paymentAllocations = new List<PaymentAllocationDto>();
+            if (party.AllocationStage1Minor.HasValue) paymentAllocations.Add(new PaymentAllocationDto(1, party.AllocationStage1Minor.Value));
+            if (party.AllocationStage2Minor.HasValue) paymentAllocations.Add(new PaymentAllocationDto(2, party.AllocationStage2Minor.Value));
+        }
+
         return new DealPartyResponse(
             party.Id,
             party.UserId,
@@ -815,7 +828,9 @@ public class DealOrchestrator : IDealOrchestrator
             party.DisplayName,
             party.Email,
             party.Status.ToString(),
-            party.AcceptedAt);
+            party.AcceptedAt,
+            AllocationMinor: party.AllocationMinor,
+            PaymentAllocations: paymentAllocations);
     }
 
     private static AgreementResponse MapToAgreementResponse(Agreement agreement)

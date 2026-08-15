@@ -34,4 +34,14 @@ public class Deal : BaseEntity
     public DateTime? AutoConfirmAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public DateTime? CancelledAt { get; set; }
+
+    /// <summary>Amount due for the first funding stage. Null for a single, non-staged payment.</summary>
+    public long? InitialPaymentMinor { get; set; }
+    /// <summary>Balance tracked for the second funding stage.</summary>
+    public long? RemainingPaymentMinor { get; set; }
+    /// <summary>Condition that must be met before the remaining balance can be funded or released.</summary>
+    public string? NextPaymentReleaseConditions { get; set; }
+    /// <summary>Which payment stage is currently active (1 or 2). Null for a single-payment deal.</summary>
+    public int? ActivePaymentStage { get; set; }
+    public DateTime? FirstPaymentReleasedAt { get; set; }
 }

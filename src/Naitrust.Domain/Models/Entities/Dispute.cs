@@ -13,4 +13,6 @@ public class Dispute : BaseEntity
     public Guid? AdminOwnerId { get; set; }
     public DisputeResolution? Resolution { get; set; }
     public DateTime? ResolvedAt { get; set; }
+    /// <summary>Whether the reporter attached evidence when opening the dispute. Drives the initial status.</summary>
+    public bool HasEvidence { get; set; }
 }

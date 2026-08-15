@@ -27,6 +27,11 @@ public record DealResponse(
     AgreementResponse? Agreement,
     List<AllowedActionDto>? AllowedActions,
     string? PublicInvitePath,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    long? InitialPaymentMinor = null,
+    long? RemainingPaymentMinor = null,
+    string? NextPaymentReleaseConditions = null,
+    int? ActivePaymentStage = null,
+    DateTime? FirstPaymentReleasedAt = null);
 
 public record AllowedActionDto(string Action, string Label, bool Enabled);

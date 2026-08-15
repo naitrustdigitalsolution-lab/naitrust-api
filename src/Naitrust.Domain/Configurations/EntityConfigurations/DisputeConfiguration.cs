@@ -11,6 +11,7 @@ public class DisputeConfiguration : IEntityTypeConfiguration<Dispute>
         builder.ToTable("Disputes");
 
         builder.Property(x => x.Reason).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.HasEvidence).HasDefaultValue(false);
 
         builder.Property(x => x.Status).HasConversion<string>();
         builder.Property(x => x.Resolution).HasConversion<string>();

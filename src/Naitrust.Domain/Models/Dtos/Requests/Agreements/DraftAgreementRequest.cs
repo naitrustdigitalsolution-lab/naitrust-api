@@ -9,4 +9,8 @@ public record DraftAgreementRequest(
     long AmountMinor,
     string Currency,
     string? DeliveryDueDate,
-    string? ReleaseConditions);
+    string? ReleaseConditions,
+    /// <summary>First-stage amount for a staged/split payment. Null (or equal to AmountMinor) for a single payment.</summary>
+    long? InitialPaymentMinor = null,
+    string? NextPaymentReleaseConditions = null,
+    int? ExtendedProductTestingDays = null);

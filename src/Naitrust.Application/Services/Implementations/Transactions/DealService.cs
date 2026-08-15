@@ -74,6 +74,22 @@ public class DealService : IDealService
             IsActive = true
         };
 
+        var initialPaymentMinor = request.InitialPaymentMinor;
+        if (initialPaymentMinor is null
+            && string.Equals(request.InitialPaymentMode, "percentage", StringComparison.OrdinalIgnoreCase)
+            && request.InitialPaymentPercentage is > 0 and <= 100)
+        {
+            initialPaymentMinor = (long)Math.Round(request.AmountMinor * (request.InitialPaymentPercentage.Value / 100.0));
+        }
+
+        if (initialPaymentMinor is > 0 && initialPaymentMinor < request.AmountMinor)
+        {
+            deal.InitialPaymentMinor = initialPaymentMinor;
+            deal.RemainingPaymentMinor = request.RemainingPaymentMinor ?? (request.AmountMinor - initialPaymentMinor.Value);
+            deal.NextPaymentReleaseConditions = request.NextPaymentReleaseConditions;
+            deal.ActivePaymentStage = 1;
+        }
+
         await dealRepo.AddAsync(deal);
 
         // Create the creator as a party
@@ -119,6 +135,8 @@ public class DealService : IDealService
                     Email = participant.Email,
                     Phone = participant.Phone,
                     AllocationMinor = participant.AllocationMinor,
+                    AllocationStage1Minor = participant.PaymentAllocations?.FirstOrDefault(a => a.Stage == 1)?.AmountMinor,
+                    AllocationStage2Minor = participant.PaymentAllocations?.FirstOrDefault(a => a.Stage == 2)?.AmountMinor,
                     Status = DealPartyStatus.Invited,
                     IsActive = true
                 };
@@ -368,11 +386,24 @@ public class DealService : IDealService
             agreement,
             allowedActions,
             publicInvitePath,
-            deal.CreatedAt);
+            deal.CreatedAt,
+            deal.InitialPaymentMinor,
+            deal.RemainingPaymentMinor,
+            deal.NextPaymentReleaseConditions,
+            deal.ActivePaymentStage,
+            deal.FirstPaymentReleasedAt);
     }
 
     private static DealPartyResponse MapToPartyResponse(DealParty party, Guid? currentUserId = null)
     {
+        List<PaymentAllocationDto>? paymentAllocations = null;
+        if (party.AllocationStage1Minor.HasValue || party.AllocationStage2Minor.HasValue)
+        {
+            paymentAllocations = new List<PaymentAllocationDto>();
+            if (party.AllocationStage1Minor.HasValue) paymentAllocations.Add(new PaymentAllocationDto(1, party.AllocationStage1Minor.Value));
+            if (party.AllocationStage2Minor.HasValue) paymentAllocations.Add(new PaymentAllocationDto(2, party.AllocationStage2Minor.Value));
+        }
+
         return new DealPartyResponse(
             party.Id,
             party.UserId,
@@ -382,7 +413,9 @@ public class DealService : IDealService
             party.Email,
             party.Status.ToString(),
             party.AcceptedAt,
-            IsYou: currentUserId.HasValue && party.UserId == currentUserId);
+            IsYou: currentUserId.HasValue && party.UserId == currentUserId,
+            AllocationMinor: party.AllocationMinor,
+            PaymentAllocations: paymentAllocations);
     }
 
     private static AgreementResponse MapToAgreementResponse(Agreement agreement)
