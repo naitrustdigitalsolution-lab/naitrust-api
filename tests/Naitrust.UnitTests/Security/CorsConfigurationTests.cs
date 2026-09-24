@@ -12,14 +12,18 @@ public class CorsConfigurationTests
     [Theory]
     [InlineData("https://naiapp-web-lhxm.vercel.app", true)]
     [InlineData("https://existing.example", true)]
+    [InlineData("https://naitrust.com", true)]
+    [InlineData("https://www.naitrust.com", true)]
+    [InlineData("https://naitrust.com.attacker.example", false)]
     [InlineData("https://unrelated.vercel.app", false)]
     [InlineData("https://naiapp-web-lhxm.vercel.app.attacker.example", false)]
-    public async Task LoginPreflight_OnlyAllowsExplicitOrigins(string origin, bool allowed)
+    public async Task Preflight_OnlyAllowsExplicitOrigins(string origin, bool allowed)
     {
-        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"))
+            .AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Cors:AllowedOrigins:0"] = "https://existing.example",
-            ["Cors:AdditionalAllowedOrigins:0"] = "https://naiapp-web-lhxm.vercel.app"
+            ["Cors:AllowedOrigins:0"] = "https://existing.example"
         }).Build();
         var services = new ServiceCollection();
         services.AddLogging();
