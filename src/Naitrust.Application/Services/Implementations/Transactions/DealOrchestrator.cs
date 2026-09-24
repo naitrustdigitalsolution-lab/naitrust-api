@@ -953,7 +953,7 @@ public class DealOrchestrator : IDealOrchestrator
         await ReconcileDeliveryStateAsync(deal, state, now, ct);
 
         if (state.FundingReviewStatus != FundingReviewStatus.InProgress)
-            return NaitrustResponse<DealResponse>.BadRequest("Payment can only be released during an active funding-review period.");
+            return NaitrustResponse<DealResponse>.BadRequest("Payment can only be released during an active funding review period.");
 
         await CompleteFundingReviewAsync(deal, state, ReleaseMethod.BuyerApproved, now, ct);
         await _unitOfWork.GetRepository<DealDeliveryState>().UpdateAsync(state);
