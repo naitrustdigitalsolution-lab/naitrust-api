@@ -49,27 +49,27 @@ public static class RoleSeed
         );
 
         // Seed role claims for SuperAdmin
-        modelBuilder.Entity<IdentityRoleClaim<Guid>>().HasData(
-            new IdentityRoleClaim<Guid> { Id = 1, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Users.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 2, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Transactions.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 3, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Disputes.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 4, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Verifications.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 5, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Payments.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 6, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Reports.View" },
-            new IdentityRoleClaim<Guid> { Id = 7, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Settings.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 8, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "AI.Manage" },
+        modelBuilder.Entity<NaitrustRoleClaim>().HasData(
+            new NaitrustRoleClaim { Id = 1, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Users.Manage" },
+            new NaitrustRoleClaim { Id = 2, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Transactions.Manage" },
+            new NaitrustRoleClaim { Id = 3, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Disputes.Manage" },
+            new NaitrustRoleClaim { Id = 4, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Verifications.Manage" },
+            new NaitrustRoleClaim { Id = 5, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Payments.Manage" },
+            new NaitrustRoleClaim { Id = 6, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Reports.View" },
+            new NaitrustRoleClaim { Id = 7, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "Settings.Manage" },
+            new NaitrustRoleClaim { Id = 8, RoleId = superAdminRoleId, ClaimType = "Permission", ClaimValue = "AI.Manage" },
 
             // Admin role claims
-            new IdentityRoleClaim<Guid> { Id = 9, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Users.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 10, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Transactions.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 11, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Disputes.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 12, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Verifications.Manage" },
-            new IdentityRoleClaim<Guid> { Id = 13, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Reports.View" },
+            new NaitrustRoleClaim { Id = 9, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Users.Manage" },
+            new NaitrustRoleClaim { Id = 10, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Transactions.Manage" },
+            new NaitrustRoleClaim { Id = 11, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Disputes.Manage" },
+            new NaitrustRoleClaim { Id = 12, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Verifications.Manage" },
+            new NaitrustRoleClaim { Id = 13, RoleId = adminRoleId, ClaimType = "Permission", ClaimValue = "Reports.View" },
 
             // User role claims
-            new IdentityRoleClaim<Guid> { Id = 14, RoleId = userRoleId, ClaimType = "Permission", ClaimValue = "Transactions.Own" },
-            new IdentityRoleClaim<Guid> { Id = 15, RoleId = userRoleId, ClaimType = "Permission", ClaimValue = "Disputes.Own" },
-            new IdentityRoleClaim<Guid> { Id = 16, RoleId = userRoleId, ClaimType = "Permission", ClaimValue = "Verifications.Own" }
+            new NaitrustRoleClaim { Id = 14, RoleId = userRoleId, ClaimType = "Permission", ClaimValue = "Transactions.Own" },
+            new NaitrustRoleClaim { Id = 15, RoleId = userRoleId, ClaimType = "Permission", ClaimValue = "Disputes.Own" },
+            new NaitrustRoleClaim { Id = 16, RoleId = userRoleId, ClaimType = "Permission", ClaimValue = "Verifications.Own" }
         );
     }
 }

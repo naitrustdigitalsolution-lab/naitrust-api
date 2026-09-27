@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Naitrust.Domain.Models.Entities;
+using Naitrust.Infrastructure.SeedData;
 
 namespace Naitrust.Infrastructure.Context;
 
@@ -112,6 +113,8 @@ public class NaitrustDbContext : IdentityDbContext<NaitrustUser, NaitrustRole, G
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BaseEntity).Assembly);
+
+        new DatabaseSeeder().SeedAll(modelBuilder);
 
         // Soft-delete query filters
         modelBuilder.Entity<NaitrustUser>().HasQueryFilter(e => !e.IsDeleted);
