@@ -1,31 +1,63 @@
 # Backend API Contract
 
+> Updated to match the real, implemented `NaitrustResponse<T>` envelope
+> (`Naitrust.Domain.Models.Dtos.Common.ApiResponse.cs`) and the actual controllers in
+> `Naitrust.Api/Controllers/`. The previous version of this doc described an aspirational
+> `{success, data, error}` shape that was never implemented — every controller action either
+> already uses `NaitrustResponse<T>` (`PublicController`) or is a stub (`NotImplementedException`)
+> that will use the same shared helper once built, since it's shared app-wide infrastructure, not
+> per-controller.
+
 Use JSON over HTTPS.
+
+## Implementation Status (important — read before building against this doc)
+
+**Only `PublicController` (`/api/Public/*` — joinWaitlist, contactUs, subscribe, submitFeedback,
+reportConcern) is actually implemented.** Every other controller listed below —
+Auth, Users, Businesses, Transactions, Milestones, Evidence, Payments, Disputes, Verification,
+Reputation, Admin, AI, Notifications, Webhooks — exists only as route-attributed method stubs that
+`throw new NotImplementedException()`. The routes are scaffolded (real `[Route]`/`[Http*]`
+attributes), so they're a solid starting shape, but no request/response body, validation, or
+persistence logic exists yet behind them.
+
+**Known mismatch with the frontend (`naitrust-web`) worth resolving before building these out:**
+the frontend's `src/libs/api/endpoints.ts` already calls transaction-related paths that do **not**
+match these stubs for overlapping concepts — e.g. the frontend calls
+`/transactions/:id/messages` (chat), `/transactions/:id/tracking/advance` (step-based progress),
+`/transactions/:id/negotiation/propose` (term proposals), and `/transactions/:id/termination`,
+none of which exist here. This backend instead stubs a simpler lifecycle-action model:
+`/transactions/:id/invite`, `/accept`, `/reject`, `/terms`, `/approve-terms`, `/fund`, `/deliver`,
+`/confirm`, `/cancel`. Since nothing is implemented on either side of that gap yet, this is a
+product/architecture decision to make deliberately (which model to build) rather than something to
+silently reconcile — flagging it here so it doesn't get built twice in two different shapes.
 
 ## Response Envelope
 
-Success:
+Every endpoint returns `NaitrustResponse<T>`:
 
 ```json
 {
-  "success": true,
+  "statusCode": 200,
+  "message": "Request successful",
   "data": {},
-  "message": "Optional message"
+  "isSuccessful": true
 }
 ```
 
-Error:
+Error (4xx/5xx) — same shape, `data` is typically `null`:
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Human readable error",
-    "details": {}
-  }
+  "statusCode": 422,
+  "message": "Human readable error",
+  "data": null,
+  "isSuccessful": false
 }
 ```
+
+Construct these via the shared `NaitrustResponse<T>` / `NaitrustResponse` static factory methods
+(`Success`, `Created`, `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`,
+`UnprocessableEntity`, `InternalServerError`, etc.) — do not hand-roll the envelope per controller.
 
 ## Endpoint Groups
 

@@ -13,7 +13,10 @@ public static class CorsConfiguration
             options.AddPolicy("NaitrustCorsPolicy", builder =>
             {
                 builder
-                    .WithOrigins(corsSettings?.AllowedOrigins ?? ["http://localhost:3000"])
+                    .WithOrigins((corsSettings?.AllowedOrigins ?? ["http://localhost:3000"])
+                        .Concat(corsSettings?.AdditionalAllowedOrigins ?? [])
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray())
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();
